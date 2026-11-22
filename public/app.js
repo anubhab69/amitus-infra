@@ -3661,18 +3661,6 @@ function renderHomePage(container) {
         <a href="https://wa.me/919863177877?text=Hi%20Amitus%20Infra,%20I%20am%20interested%20in%20your%20construction%20and%20apartment%20projects" target="_blank" class="btn btn-secondary" style="padding:0.65rem 1.25rem;font-size:0.9rem;font-weight:700;display:inline-flex;align-items:center;gap:0.45rem;text-decoration:none;">
           💬 WhatsApp Inquiry ↗
         </a>
-        ${state.auth && state.auth.isAuthenticated ? `
-          <button class="btn btn-sm" onclick="switchTab('projects')" style="padding:0.65rem 1.15rem;font-size:0.875rem;">
-            🏢 View All Site Projects →
-          </button>
-          <button class="btn btn-sm btn-accent" onclick="switchTab('dashboard')" style="padding:0.65rem 1.15rem;font-size:0.875rem;">
-            📊 Site Operations Portal →
-          </button>
-        ` : `
-          <button class="btn btn-sm btn-accent" onclick="openDirectorLoginModal()" style="padding:0.65rem 1.15rem;font-size:0.875rem;">
-            🔐 Director Portal Login →
-          </button>
-        `}
       </div>
 
       <div style="margin-top:1.75rem;padding-top:1.25rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:1rem;flex-wrap:wrap;font-size:0.8rem;color:var(--text-muted);">
@@ -3762,11 +3750,11 @@ function renderHomePage(container) {
           </div>
 
           <div style="display:flex;gap:0.4rem;align-items:center;">
-            <button class="btn btn-sm btn-primary" onclick="openSiteDetail('${g4Proj.id}')" style="flex:1;">
-              📍 Site Portal [${g4Proj.code}]
-            </button>
-            <a href="https://wa.me/919863177877?text=Hi%20Director%20Santanu%20Bhaumik,%20I%20am%20interested%20in%20Amitus%20G%2B4%20Residency%20Shibnagar%20flats" target="_blank" class="contact-btn wa" style="padding:0.4rem 0.65rem;font-size:0.75rem;text-decoration:none;">
-              💬 Inquire
+            <a href="https://wa.me/919863177877?text=Hi%20Director%20Santanu%20Bhaumik,%20I%20am%20interested%20in%20Amitus%20G%2B4%20Residency%20Shibnagar%20flats" target="_blank" class="btn btn-sm btn-primary" style="flex:1;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:0.4rem;font-weight:700;">
+              💬 Inquire for Flats ↗
+            </a>
+            <a href="tel:09863177877" class="btn btn-sm btn-outline" style="text-decoration:none;display:inline-flex;align-items:center;gap:0.3rem;">
+              📞 Call
             </a>
           </div>
         </div>
@@ -3806,11 +3794,11 @@ function renderHomePage(container) {
           </div>
 
           <div style="display:flex;gap:0.4rem;align-items:center;">
-            <button class="btn btn-sm btn-primary" onclick="openSiteDetail('${daminiProj.id}')" style="flex:1;">
-              📍 Site Portal [${daminiProj.code}]
-            </button>
-            <a href="https://wa.me/919863177877?text=Hi%20Director%20Santanu%20Bhaumik,%20I%20am%20interested%20in%20Amitus%20Damini%20Residency%20Abhoynagar" target="_blank" class="contact-btn wa" style="padding:0.4rem 0.65rem;font-size:0.75rem;text-decoration:none;">
-              💬 Inquire
+            <a href="https://wa.me/919863177877?text=Hi%20Director%20Santanu%20Bhaumik,%20I%20am%20interested%20in%20Amitus%20Damini%20Residency%20Abhoynagar%20flats" target="_blank" class="btn btn-sm btn-primary" style="flex:1;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:0.4rem;font-weight:700;">
+              💬 Inquire for Flats ↗
+            </a>
+            <a href="tel:09863177877" class="btn btn-sm btn-outline" style="text-decoration:none;display:inline-flex;align-items:center;gap:0.3rem;">
+              📞 Call
             </a>
           </div>
         </div>
@@ -3850,11 +3838,11 @@ function renderHomePage(container) {
           </div>
 
           <div style="display:flex;gap:0.4rem;align-items:center;">
-            <button class="btn btn-sm btn-primary" onclick="openSiteDetail('${senoritaProj.id}')" style="flex:1;">
-              📍 Site Portal [${senoritaProj.code}]
-            </button>
-            <a href="https://wa.me/919863177877?text=Hi%20Director%20Santanu%20Bhaumik,%20I%20am%20interested%20in%20Amitus%20Senorita%20Rise%20Dhaleswar" target="_blank" class="contact-btn wa" style="padding:0.4rem 0.65rem;font-size:0.75rem;text-decoration:none;">
-              💬 Inquire
+            <a href="https://wa.me/919863177877?text=Hi%20Director%20Santanu%20Bhaumik,%20I%20am%20interested%20in%20Amitus%20Senorita%20Rise%20Dhaleswar%20flats" target="_blank" class="btn btn-sm btn-primary" style="flex:1;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:0.4rem;font-weight:700;">
+              💬 Inquire for Flats ↗
+            </a>
+            <a href="tel:09863177877" class="btn btn-sm btn-outline" style="text-decoration:none;display:inline-flex;align-items:center;gap:0.3rem;">
+              📞 Call
             </a>
           </div>
         </div>
@@ -3868,9 +3856,11 @@ function renderHomePage(container) {
           <h2>Live Construction Site Progress</h2>
           <p>Real-time photographic documentation of our active civil construction, slab casting, and finishing.</p>
         </div>
-        <button class="btn btn-sm btn-outline" onclick="switchTab('site-photos')">
-          📸 View Full Gallery →
-        </button>
+        ${state.auth && state.auth.isAuthenticated ? `
+          <button class="btn btn-sm btn-outline" onclick="switchTab('site-photos')">
+            📸 View Full Gallery →
+          </button>
+        ` : ''}
       </div>
     </div>
 
@@ -5584,7 +5574,7 @@ const i18n = {
     dailyBrief: '📲 Daily Brief',
     catalog: '⭐ Catalog',
     addMaterial: '➕ Material',
-    login: '🔐 Portal Login',
+    login: '🔐 Director Login',
     logout: '🚪 Logout',
     changePassword: '🔑 Change PIN / Pass',
     directorBadge: '👤 Director',
@@ -5612,7 +5602,7 @@ const i18n = {
     dailyBrief: '📲 দৈনিক রিপোর্ট',
     catalog: '⭐ ক্যাটালগ',
     addMaterial: '➕ নতুন সামগ্রী',
-    login: '🔐 পোর্টাল লগইন',
+    login: '🔐 ডিরেক্টর লগইন',
     logout: '🚪 প্রস্থান (Logout)',
     changePassword: '🔑 পাসওয়ার্ড / পিন বদলান',
     directorBadge: '👤 ডিরেক্টর',
