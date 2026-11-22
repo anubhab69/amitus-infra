@@ -1,0 +1,20 @@
+{
+  "name": "construction-inventory-management",
+  "version": "1.0.0",
+  "description": "Professional Construction & Real Estate Multi-Site Inventory Management System with Subsidized Pricing, Shortcuts, and BOQ Analytics",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "real-estate",
+    "construction",
+    "inventory",
+    "materials",
+    "boq",
+    "subsidy-tracking",
+    "site-management"
+  ],
+  "author": "Antigravity",
+  "license": "ISC"
+}

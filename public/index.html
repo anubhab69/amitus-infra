@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amitus Infra — Construction Site Inventory & Workforce Management</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/jpeg" href="logo.jpg">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#070a10">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Amitus Infra">
+  <link rel="apple-touch-icon" href="/logo.jpg">
+</head>
+<body>
+
+  <!-- Minimalist Executive App Header -->
+  <header class="app-header">
+    <div class="header-top">
+      <!-- Amitus Infra Official Brand Section -->
+      <div class="brand-section" onclick="switchTab('home')" title="Amitus Infra — Building Home Of Your Dream (Since 2001)">
+        <div class="brand-logo-wrap">
+          <img src="logo.jpg" alt="Amitus Infra Logo" class="brand-logo-img">
+        </div>
+        <div class="brand-titles">
+          <div class="brand-company-row">
+            <h1 class="brand-company-name">AMITUS <span class="highlight-infra">INFRA</span></h1>
+            <span class="brand-est-badge">SINCE 2001</span>
+          </div>
+          <div class="brand-tagline">Building Home Of Your Dream • Shibnagar, Agartala</div>
+        </div>
+      </div>
+
+      <!-- Quick Project Filter Dropdown in Header -->
+      <div class="header-center-selector">
+        <label for="header-project-select">Site:</label>
+        <select id="header-project-select">
+          <option value="all">All Sites</option>
+        </select>
+      </div>
+
+      <!-- Header Action Buttons -->
+      <div class="header-actions">
+        <!-- Director Authentication Section in Header -->
+        <div id="header-auth-section" style="display:inline-flex;align-items:center;gap:0.35rem;">
+          <button class="btn btn-sm btn-accent" id="header-login-btn" onclick="openDirectorLoginModal()" title="Director Portal Login">
+            🔐 Director Login
+          </button>
+          <div id="header-user-badge" style="display:none;align-items:center;gap:0.35rem;">
+            <span class="badge badge-success" style="font-size:0.75rem;padding:0.35rem 0.65rem;font-weight:700;display:inline-flex;align-items:center;gap:0.3rem;" title="Director Logged In">
+              👤 Director
+            </span>
+            <button class="btn btn-xs" onclick="openModal('modal-change-credentials')" title="Customize Credentials & PIN">
+              ⚙️
+            </button>
+            <button class="btn btn-xs btn-outline" onclick="directorLogout()" title="Lock Management Portal">
+              🚪 Logout
+            </button>
+          </div>
+        </div>
+        <button class="office-contact-btn" onclick="openModal('modal-amitus-office')" title="Amitus Infra Office, Contact & Google Maps Directions">
+          📍 Shibnagar, Agartala • 📞 098631 77877
+        </button>
+        <button class="btn btn-sm btn-accent" onclick="openWhatsAppReportModal()" title="9:00 PM Daily WhatsApp Operations Brief">
+          📲 Daily Brief <span class="badge" style="font-size:0.6rem;background:#000;color:#f59e0b;padding:1px 5px;margin-left:3px;border-radius:3px;">9 PM</span>
+        </button>
+        <button class="btn btn-sm" onclick="openPresetsModal()" title="Common Construction Catalog (Q)">
+          ⭐ Catalog <span class="kbd">Q</span>
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-item')" title="Add Material (N)">
+          ➕ Material <span class="kbd">N</span>
+        </button>
+        <button class="btn btn-sm btn-outline" id="pwa-install-btn" onclick="triggerPWAInstall()" style="display:none;background:rgba(245,158,11,0.15);border-color:var(--primary);color:var(--primary);font-weight:700;" title="Install Amitus Infra on Phone / Desktop">📲 Install App</button>
+        <button class="btn btn-sm" id="theme-toggle-btn" title="Toggle Theme">
+          🌙 Dark
+        </button>
+        <button class="btn btn-sm" onclick="openModal('modal-shortcuts-guide')" title="Shortcuts (?)">
+          ⌨️ <span class="kbd">?</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Minimalist Navigation Tabs Bar with Dedicated Project Tab -->
+    <nav class="nav-tabs-bar">
+      <button class="nav-tab-btn active" data-tab="home">
+        🏠 Home Showcase
+      </button>
+      <button class="nav-tab-btn" data-tab="dashboard">
+        📊 Inventory & Workforce
+      </button>
+      <button class="nav-tab-btn" data-tab="projects">
+        🏢 Sites & Staffing <span class="tab-counter" id="counter-projects">0</span>
+      </button>
+
+      <!-- Dedicated Dynamic Project Tab (Opens when any specific project is clicked) -->
+      <button class="nav-tab-btn" data-tab="site-detail" id="nav-tab-site-detail" style="display:none;">
+        📍 <span id="nav-tab-site-name">Site Command Center</span>
+      </button>
+
+      <button class="nav-tab-btn" data-tab="inventory">
+        📦 Inventory Master <span class="tab-counter" id="counter-inventory">0</span>
+      </button>
+      <button class="nav-tab-btn" data-tab="shortcuts">
+        ⚡ Operations & Multi-Pad
+      </button>
+      <button class="nav-tab-btn" data-tab="transactions">
+        📋 Delivery Log
+      </button>
+      <button class="nav-tab-btn" data-tab="boq">
+        📑 BOQ Statement
+      </button>
+      <button class="nav-tab-btn" data-tab="workforce-payroll">
+        👥 Workers & Payroll <span class="tab-counter" id="counter-employees">0</span>
+      </button>
+      <button class="nav-tab-btn" data-tab="civil-estimator">
+        📐 Civil Estimator
+      </button>
+      <button class="nav-tab-btn" data-tab="daily-hazira">
+        📋 Daily Hazira <span class="tab-counter" id="counter-attendance">0</span>
+      </button>
+      <button class="nav-tab-btn" data-tab="flat-booking">
+        🏢 Flat Booking & Sales <span class="tab-counter" id="counter-flats">0</span>
+      </button>
+      <button class="nav-tab-btn" data-tab="supplier-khata">
+        🚚 Supplier Khata <span class="tab-counter" id="counter-suppliers">0</span>
+      </button>
+      <button class="nav-tab-btn" data-tab="site-photos">
+        📸 Site Progress
+      </button>
+    </nav>
+  </header>
+
+  <!-- Main View Container -->
+  <main class="app-main">
+    <div id="tab-content-area">
+      <div style="text-align:center;padding:5rem 1rem;">
+        <div style="width:52px;height:52px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 1.25rem auto;"></div>
+        <div style="font-size:1.25rem;font-weight:800;color:var(--text-main);letter-spacing:0.02em;">AMITUS <span style="color:var(--primary);">INFRA</span></div>
+        <div style="font-size:0.85rem;color:var(--text-muted);margin-top:0.35rem;">Building Home Of Your Dream • Connecting to Site Portal...</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Toast Notification Center -->
+  <div id="toast-container"></div>
+
+  <!-- ==================================================== -->
+  <!-- MODAL: 1-Click Material Presets Catalog -->
+  <!-- ==================================================== -->
+  <div class="modal-overlay" id="modal-presets-catalog">
+    <div class="modal-container modal-lg">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>⭐ 1-Click Common Construction Materials Catalog</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-presets-catalog')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.85rem;">
+          Add standard construction materials (cement, TMT rebars, bricks, sand, paints, electrical, plumbing) into any site project with pre-configured subsidized rates.
+        </p>
+
+        <!-- Destination Site Selector -->
+        <div style="background:var(--bg-subtle);padding:0.65rem 0.85rem;border-radius:var(--radius-sm);margin-bottom:0.85rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;border:1px solid var(--border);">
+          <div style="font-weight:600;font-size:0.8rem;color:var(--text-main);">
+            📍 Add selected materials to which Site Project?
+          </div>
+          <select id="preset-target-project" class="project-selector-dropdown" style="padding:0.35rem 0.65rem;border-radius:var(--radius-sm);border:1px solid var(--border);font-weight:600;min-width:230px;">
+            <!-- Populated via JS -->
+          </select>
+        </div>
+
+        <!-- Catalog Filter Toolbar -->
+        <div style="display:flex;gap:0.5rem;margin-bottom:0.85rem;flex-wrap:wrap;">
+          <input type="text" placeholder="Filter materials (e.g. cement, steel, bricks)..." oninput="onPresetSearchChange(this.value)" style="flex:1;min-width:180px;padding:0.4rem 0.65rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-card);color:var(--text-main);">
+          <select onchange="onPresetCategoryChange(this.value)" style="padding:0.4rem 0.65rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-card);color:var(--text-main);">
+            <option value="all">All Categories</option>
+            <option value="Cement & Binding">Cement & Binding</option>
+            <option value="Steel & Structural">Steel & Structural</option>
+            <option value="Masonry & Bricks">Masonry & Bricks</option>
+            <option value="Aggregates & Sand">Aggregates & Sand</option>
+            <option value="Plumbing & Sanitary">Plumbing & Sanitary</option>
+            <option value="Electrical & Wiring">Electrical & Wiring</option>
+            <option value="Tiles & Flooring">Tiles & Flooring</option>
+            <option value="Paints & Waterproofing">Paints & Waterproofing</option>
+            <option value="Lumber & Formwork">Lumber & Formwork</option>
+            <option value="Tools & Hardware">Tools & Hardware</option>
+          </select>
+        </div>
+
+        <!-- Grid of Preset Cards -->
+        <div class="preset-catalog-grid" id="presets-catalog-container">
+          <!-- Populated via JS -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-sm" onclick="closeModal('modal-presets-catalog')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================== -->
+  <!-- MODAL: Inter-Site Stock Transfer -->
+  <!-- ==================================================== -->
+  <div class="modal-overlay" id="modal-transfer-stock">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>🔄 Inter-Site Material Transfer</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-transfer-stock')">✕</button>
+      </div>
+      <form onsubmit="submitTransferForm(event)">
+        <div class="modal-body">
+          <p style="font-size:0.775rem;color:var(--text-muted);margin-bottom:0.85rem;">
+            Transfer materials seamlessly between sites (e.g. from Central Stockyard to an active tower). Stock levels update automatically at both locations.
+          </p>
+
+          <div class="form-group">
+            <label class="form-label">Select Source Material & Site <span class="req">*</span></label>
+            <select id="transfer-source-item" class="form-control" required onchange="onTransferSourceItemChange()">
+              <!-- Populated via JS -->
+            </select>
+          </div>
+
+          <div class="form-group" style="background:var(--bg-subtle);padding:0.5rem 0.65rem;border-radius:var(--radius-sm);border:1px solid var(--border);">
+            <div style="font-size:0.7rem;color:var(--text-muted);">Source Site:</div>
+            <div id="transfer-source-project-name" style="font-weight:700;font-size:0.825rem;">Select material above</div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Destination Site Project <span class="req">*</span></label>
+              <select id="transfer-target-project" class="form-control" required>
+                <!-- Populated via JS -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Transfer Quantity (<span id="transfer-unit-label">Units</span>) <span class="req">*</span></label>
+              <input type="number" id="transfer-quantity" class="form-control" required min="0.01" step="any" placeholder="Enter quantity">
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Transfer Challan / Gate Pass #</label>
+              <input type="text" id="transfer-challan-no" class="form-control" placeholder="e.g. TR-2026-44">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Vehicle / Truck Number</label>
+              <input type="text" id="transfer-vehicle-no" class="form-control" placeholder="e.g. MH-12-AB-1234">
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Receiver Supervisor Name</label>
+              <input type="text" id="transfer-received-by" class="form-control" placeholder="e.g. Ramesh Kumar">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Transfer Notes</label>
+              <input type="text" id="transfer-notes" class="form-control" placeholder="e.g. For 6th floor slab casting">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm" onclick="closeModal('modal-transfer-stock')">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm">Complete Transfer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================================================== -->
+  <!-- MODAL: Quick Inward / Delivery Challan Entry -->
+  <!-- ==================================================== -->
+  <div class="modal-overlay" id="modal-quick-inward">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>📥 Quick Inward Delivery Challan</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-quick-inward')">✕</button>
+      </div>
+      <form onsubmit="submitInwardForm(event)">
+        <div class="modal-body">
+          <p style="font-size:0.775rem;color:var(--text-muted);margin-bottom:0.85rem;">
+            A supplier delivery truck arrived at a site? Quickly record incoming bags, tons, or brass with delivery slip numbers.
+          </p>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Site Receiving Goods <span class="req">*</span></label>
+              <select id="inward-project-select" class="form-control project-selector-dropdown" onchange="populateInwardItems()" required>
+                <!-- Populated via JS -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Select Material <span class="req">*</span></label>
+              <select id="inward-item-select" class="form-control" required>
+                <!-- Populated via JS -->
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Delivered Quantity <span class="req">*</span></label>
+              <input type="number" id="inward-quantity" class="form-control" min="0.01" step="any" required placeholder="e.g. 200">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Supplier Delivery Challan #</label>
+              <input type="text" id="inward-challan-no" class="form-control" placeholder="e.g. CH-88912">
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Truck / Vehicle Number</label>
+              <input type="text" id="inward-vehicle-no" class="form-control" placeholder="e.g. KA-01-EF-4567">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Received By (Site Staff)</label>
+              <input type="text" id="inward-received-by" class="form-control" placeholder="e.g. Mohan Storekeeper">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Remarks / Invoice Notes</label>
+            <input type="text" id="inward-notes" class="form-control" placeholder="e.g. 200 bags unloaded at Shed 2, intact seal">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm" onclick="closeModal('modal-quick-inward')">Cancel</button>
+          <button type="submit" class="btn btn-secondary btn-sm">Record Inward Stock</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================================================== -->
+  <!-- MODAL: Quick Outward / Site Consumption Entry -->
+  <!-- ==================================================== -->
+  <div class="modal-overlay" id="modal-quick-outward">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>📤 Issue / Consume Stock on Site</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-quick-outward')">✕</button>
+      </div>
+      <form onsubmit="submitOutwardForm(event)">
+        <div class="modal-body">
+          <p style="font-size:0.775rem;color:var(--text-muted);margin-bottom:0.85rem;">
+            Record materials issued from site store for day-to-day construction execution (concreting, brickwork, plastering).
+          </p>
+
+          <div class="form-group">
+            <label class="form-label">Select Material <span class="req">*</span></label>
+            <select id="outward-item-select" class="form-control" required>
+              <!-- Populated via JS -->
+            </select>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Quantity Consumed <span class="req">*</span></label>
+              <input type="number" id="outward-quantity" class="form-control" min="0.01" step="any" required placeholder="e.g. 50">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Internal Work Slip #</label>
+              <input type="text" id="outward-challan-no" class="form-control" placeholder="e.g. SLIP-091">
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Issued To (Mason / Contractor)</label>
+              <input type="text" id="outward-received-by" class="form-control" placeholder="e.g. Contractor Rajesh">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Activity Description</label>
+              <input type="text" id="outward-notes" class="form-control" placeholder="e.g. Tower B 3rd floor slab casting">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm" onclick="closeModal('modal-quick-outward')">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm">Deduct Stock</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================================================== -->
+  <!-- MODAL: Add / Edit Material Item -->
+  <!-- ==================================================== -->
+  <div class="modal-overlay" id="modal-add-item">
+    <div class="modal-container modal-lg">
+      <div class="modal-header">
+        <div class="modal-title" id="modal-item-title">
+          <span>➕ Add Construction Material Item</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-add-item')">✕</button>
+      </div>
+      <form id="form-add-item" onsubmit="submitItemForm(event)">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Site Project <span class="req">*</span></label>
+              <select id="item-project" class="form-control project-selector-dropdown" required>
+                <!-- Populated via JS -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Material Name <span class="req">*</span></label>
+              <input type="text" id="item-name" class="form-control" required placeholder="e.g. UltraTech Super PPC Cement (50 kg)">
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label class="form-label">Trade Category <span class="req">*</span></label>
+              <select id="item-category" class="form-control" required>
+                <option value="Cement & Binding">Cement & Binding</option>
+                <option value="Steel & Structural">Steel & Structural</option>
+                <option value="Masonry & Bricks">Masonry & Bricks</option>
+                <option value="Aggregates & Sand">Aggregates & Sand</option>
+                <option value="Plumbing & Sanitary">Plumbing & Sanitary</option>
+                <option value="Electrical & Wiring">Electrical & Wiring</option>
+                <option value="Tiles & Flooring">Tiles & Flooring</option>
+                <option value="Paints & Waterproofing">Paints & Waterproofing</option>
+                <option value="Lumber & Formwork">Lumber & Formwork</option>
+                <option value="Tools & Hardware">Tools & Hardware</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Unit of Measure <span class="req">*</span></label>
+              <select id="item-unit" class="form-control" required>
+                <option value="Bags">Bags (Cement)</option>
+                <option value="Tons">Tons (TMT Steel)</option>
+                <option value="Quintals">Quintals</option>
+                <option value="Brass (100 cu.ft)">Brass (100 cu.ft - Sand/Aggregates)</option>
+                <option value="Cu.m">Cu.m (RMC Concrete, Blocks)</option>
+                <option value="Cu.ft">Cu.ft</option>
+                <option value="1000 Pcs">1000 Pcs (Bricks)</option>
+                <option value="Pieces/Nos">Pieces/Nos (Pipes, Tiles, MCB)</option>
+                <option value="Litres">Litres (Paint, Waterproofing)</option>
+                <option value="Bundles">Bundles (Wires, Binding Wire)</option>
+                <option value="Meters">Meters</option>
+                <option value="Sq.ft">Sq.ft</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Material Code / SKU</label>
+              <input type="text" id="item-sku" class="form-control" placeholder="e.g. CEM-01">
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label class="form-label">Current Stock Quantity <span class="req">*</span></label>
+              <input type="number" id="item-quantity" class="form-control" min="0" step="any" required placeholder="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Low Stock Alert Level <span class="req">*</span></label>
+              <input type="number" id="item-min-alert" class="form-control" min="0" step="any" required placeholder="10">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Storage Location in Site</label>
+              <input type="text" id="item-location" class="form-control" placeholder="e.g. Shed 1, Ground Staging">
+            </div>
+          </div>
+
+          <!-- Financials: Standard vs Subsidized Rate -->
+          <div style="background:var(--bg-subtle);padding:0.75rem;border-radius:var(--radius-sm);border:1px solid var(--border);margin:0.5rem 0;">
+            <div style="font-weight:700;font-size:0.785rem;margin-bottom:0.45rem;color:var(--text-main);">
+              💰 Financial Rates & Subsidy Details
+            </div>
+            <div class="form-grid-3">
+              <div class="form-group">
+                <label class="form-label">Standard Market Rate (₹) <span class="req">*</span></label>
+                <input type="number" id="item-std-price" class="form-control" min="0" step="any" required placeholder="e.g. 390">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Subsidized / Net Rate (₹) <span class="req">*</span></label>
+                <input type="number" id="item-sub-price" class="form-control" min="0" step="any" required placeholder="e.g. 340">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Subsidy Scheme Name</label>
+                <input type="text" id="item-subsidy-scheme" class="form-control" placeholder="e.g. Bulk Builder Tier-1 / PMAY">
+              </div>
+            </div>
+
+            <!-- Auto-calculating valuation summary box -->
+            <div class="calc-summary-box">
+              <div>
+                <div style="font-size:0.675rem;color:var(--text-muted);font-weight:600;">Standard Valuation</div>
+                <div id="calc-preview-std" style="font-weight:800;font-size:0.9rem;">₹ 0</div>
+              </div>
+              <div>
+                <div style="font-size:0.675rem;color:var(--text-main);font-weight:600;">Subsidized Net Cost</div>
+                <div id="calc-preview-sub" style="font-weight:800;font-size:0.9rem;">₹ 0</div>
+              </div>
+              <div>
+                <div style="font-size:0.675rem;color:var(--success);font-weight:600;">Net Subsidy Savings</div>
+                <div id="calc-preview-sav" style="font-weight:800;font-size:0.9rem;color:var(--success);">₹ 0 (0%)</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label class="form-label">Subsidy Claim Status</label>
+              <select id="item-subsidy-status" class="form-control">
+                <option value="Approved">Approved</option>
+                <option value="Pending Claim">Pending Claim</option>
+                <option value="Settled">Settled</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Delivery Status / ETA</label>
+              <input type="text" id="item-delivery-eta" class="form-control" placeholder="e.g. In Stock / Expected Tomorrow">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Vendor Name</label>
+              <input type="text" id="item-supplier" class="form-control" placeholder="e.g. UltraTech Direct Hub">
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Supplier Contact Number</label>
+              <input type="text" id="item-supplier-contact" class="form-control" placeholder="e.g. +91 98765 43210">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Notes & Specifications</label>
+              <input type="text" id="item-notes" class="form-control" placeholder="e.g. Batch #441, Grade 53">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm" onclick="closeModal('modal-add-item')">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm">Save Material</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================================================== -->
+  <!-- MODAL: Add / Edit Construction Project & Staffing -->
+  <!-- ==================================================== -->
+  <div class="modal-overlay" id="modal-add-project">
+    <div class="modal-container modal-lg">
+      <div class="modal-header">
+        <div class="modal-title" id="modal-project-title">
+          <span>🏢 Register Construction Site Project & Staffing</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-add-project')">✕</button>
+      </div>
+      <form id="form-add-project" onsubmit="submitProjectForm(event)">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Project / Site Name <span class="req">*</span></label>
+              <input type="text" id="project-name" class="form-control" required placeholder="e.g. Emerald Heights - Tower B">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Project Code <span class="req">*</span></label>
+              <input type="text" id="project-code" class="form-control" required placeholder="e.g. EH-B2">
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label class="form-label">Project Type</label>
+              <select id="project-type" class="form-control">
+                <option value="Residential High-Rise">Residential High-Rise</option>
+                <option value="Gated Villa Community">Gated Villa Community</option>
+                <option value="Commercial Complex">Commercial Complex</option>
+                <option value="Plotted Development">Plotted Development</option>
+                <option value="Central Yard">Central Logistics Yard</option>
+                <option value="Industrial Shed">Industrial Shed</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Site Status</label>
+              <select id="project-status" class="form-control">
+                <option value="Active">Active (Ongoing Civil)</option>
+                <option value="Finishing">Finishing / Fitouts</option>
+                <option value="Planning">Planning / Approvals</option>
+                <option value="On Hold">On Hold</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Current Construction Phase</label>
+              <input type="text" id="project-phase" class="form-control" placeholder="e.g. RCC Framing (8th Floor)">
+            </div>
+          </div>
+
+          <!-- Workforce & Staffing Section -->
+          <div style="background:var(--bg-subtle);padding:0.75rem;border-radius:var(--radius-sm);border:1px solid var(--border);margin:0.5rem 0;">
+            <div style="font-weight:700;font-size:0.785rem;margin-bottom:0.45rem;color:var(--text-main);">
+              👷 Manpower & Staff Requirements
+            </div>
+            <div class="form-grid-3">
+              <div class="form-group">
+                <label class="form-label">Workers Needed on Site <span class="req">*</span></label>
+                <input type="number" id="project-staff-needed" class="form-control" min="0" required placeholder="e.g. 50">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Currently Deployed Headcount <span class="req">*</span></label>
+                <input type="number" id="project-staff-deployed" class="form-control" min="0" required placeholder="e.g. 42">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Avg Daily Wage per Worker (₹)</label>
+                <input type="number" id="project-daily-wage" class="form-control" min="0" placeholder="e.g. 650">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Trades / Roles Breakdown</label>
+              <input type="text" id="project-staff-roles" class="form-control" placeholder="e.g. Masons: 12, Bar Benders: 8, Carpenters: 6, Labour: 16">
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label class="form-label">Site Supervisor / Engineer</label>
+              <input type="text" id="project-supervisor" class="form-control" placeholder="e.g. Vikram Sharma">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Supervisor Phone (for WhatsApp)</label>
+              <input type="text" id="project-phone" class="form-control" placeholder="e.g. +91 98123 45678">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Site Progress (% Complete)</label>
+              <input type="number" id="project-progress" class="form-control" min="0" max="100" placeholder="e.g. 60">
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label class="form-label">Material Budget (₹)</label>
+              <input type="number" id="project-budget" class="form-control" min="0" step="any" placeholder="e.g. 15000000">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Target Completion Date</label>
+              <input type="date" id="project-target-date" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Site Color Badge</label>
+              <input type="color" id="project-color" class="form-control" value="#2563eb" style="height:35px;padding:2px;">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Site Location / Address</label>
+            <input type="text" id="project-location" class="form-control" placeholder="e.g. Plot 42, Sector 18, Expressway Road">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Notes & Activity Scope</label>
+            <textarea id="project-notes" class="form-control" rows="2" placeholder="e.g. 14 storeys, 112 flats, currently casting 8th floor slab..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm" onclick="closeModal('modal-add-project')">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm">Save Site Project</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================================================== -->
+  <!-- MODAL: Add / Edit Worker or Employee -->
+  <!-- ==================================================== -->
+  <div class="modal-overlay" id="modal-add-employee">
+    <div class="modal-container modal-lg">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span id="modal-employee-title">👷 Add Worker / Staff Member</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-add-employee')">✕</button>
+      </div>
+      <form id="form-add-employee" onsubmit="submitEmployeeForm(event)">
+        <input type="hidden" id="emp-id" value="">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Full Name <span class="req">*</span></label>
+              <input type="text" id="emp-name" class="form-control" required placeholder="e.g. Ramesh Mistri / Rajesh Singhania">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mobile / WhatsApp Number <span class="req">*</span></label>
+              <input type="tel" id="emp-phone" class="form-control" required placeholder="e.g. +91 98765 43210">
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label class="form-label">Trade / Role <span class="req">*</span></label>
+              <select id="emp-role" class="form-control" required>
+                <option value="Site Supervisor">Site Supervisor</option>
+                <option value="Project Engineer">Project Engineer</option>
+                <option value="Head Mason (Mistri)">Head Mason (Mistri)</option>
+                <option value="Mason">Mason (Rajmistri)</option>
+                <option value="Bar Bender / Steel Fixer">Bar Bender / Steel Fixer</option>
+                <option value="Carpenter / Shuttering">Carpenter / Shuttering</option>
+                <option value="Electrician">Electrician</option>
+                <option value="Plumber">Plumber</option>
+                <option value="Painter">Painter</option>
+                <option value="Stockyard Manager">Stockyard Manager</option>
+                <option value="Security Guard">Security Guard</option>
+                <option value="General Laborer">General Laborer (Beldar / Mazdoor)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Wage Structure <span class="req">*</span></label>
+              <select id="emp-wage-type" class="form-control" required onchange="updateWageRatePlaceholder()">
+                <option value="Daily Wage">Daily Wage (Per Day)</option>
+                <option value="Monthly Salary">Monthly Salary (Per Month)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" id="lbl-emp-wage-rate">Wage Rate (₹/day) <span class="req">*</span></label>
+              <input type="number" id="emp-wage-rate" class="form-control" min="0" required placeholder="e.g. 850">
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label class="form-label">Assigned Site Project <span class="req">*</span></label>
+              <select id="emp-assigned-project" class="form-control project-selector-dropdown" required>
+                <!-- Populated via JS -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Status</label>
+              <select id="emp-status" class="form-control">
+                <option value="Active">Active (Working)</option>
+                <option value="On Leave">On Leave</option>
+                <option value="Relieved">Relieved / Inactive</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Joining Date</label>
+              <input type="date" id="emp-joining-date" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Aadhaar / ID Card Number</label>
+              <input type="text" id="emp-id-proof" class="form-control" placeholder="e.g. Aadhaar: 1234-5678-9012">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Emergency Contact / Family</label>
+              <input type="text" id="emp-emergency-contact" class="form-control" placeholder="e.g. Brother (+91 98765 11223)">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Experience, Skills & Notes</label>
+            <textarea id="emp-notes" class="form-control" rows="2" placeholder="e.g. 10 years experience in RCC column casting, UPI: 9876543210@upi..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm" onclick="closeModal('modal-add-employee')">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm">Save Worker Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================================================== -->
+  <!-- MODAL: Log Salary / Wage / Advance Payment -->
+  <!-- ==================================================== -->
+  <div class="modal-overlay" id="modal-log-salary">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>💰 Record Salary / Wage / Advance Payout</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-log-salary')">✕</button>
+      </div>
+      <form id="form-log-salary" onsubmit="submitPayrollForm(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Select Worker / Staff Member <span class="req">*</span></label>
+            <select id="pay-employee-id" class="form-control" required onchange="onPayrollEmployeeSelect(this.value)">
+              <option value="" disabled selected>Choose worker...</option>
+            </select>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Site Project Charged <span class="req">*</span></label>
+              <select id="pay-project-id" class="form-control project-selector-dropdown" required>
+                <!-- Populated via JS -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Payment Date <span class="req">*</span></label>
+              <input type="date" id="pay-date" class="form-control" required>
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label class="form-label">Payout Type <span class="req">*</span></label>
+              <select id="pay-type" class="form-control" required>
+                <option value="Daily Wage Payment">Daily Wage Payment</option>
+                <option value="Salary Payout">Monthly Salary Payout</option>
+                <option value="Advance Payout">Advance / Loan Given</option>
+                <option value="Bonus / Incentive">Bonus / Site Incentive</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Amount Paid (₹) <span class="req">*</span></label>
+              <input type="number" id="pay-amount" class="form-control" min="1" required placeholder="e.g. 5000">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Payment Mode <span class="req">*</span></label>
+              <select id="pay-mode" class="form-control" required>
+                <option value="Cash">Cash at Site</option>
+                <option value="UPI / PhonePe">UPI / PhonePe / GPay</option>
+                <option value="Bank Transfer">Bank Transfer (NEFT/IMPS)</option>
+                <option value="Cheque">Cheque</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">For Period / Days Worked</label>
+              <input type="text" id="pay-period" class="form-control" placeholder="e.g. Week 47 (6 days) / Nov 2026">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Voucher / Transaction Reference</label>
+              <input type="text" id="pay-ref" class="form-control" placeholder="e.g. UPI-998812 / Cash Voucher #102">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Remarks / Notes</label>
+            <input type="text" id="pay-notes" class="form-control" placeholder="e.g. Cleared full wage for RCC column work">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm" onclick="closeModal('modal-log-salary')">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm">Save Payment Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================================================== -->
+  <!-- MODAL: Keyboard Shortcuts Guide -->
+  <!-- ==================================================== -->
+  <div class="modal-overlay" id="modal-shortcuts-guide">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>⌨️ Keyboard Shortcuts</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-shortcuts-guide')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="shortcut-guide-grid">
+          <div class="shortcut-guide-row">
+            <span>Add New Material</span>
+            <span class="kbd">N</span>
+          </div>
+          <div class="shortcut-guide-row">
+            <span>Register New Site Project</span>
+            <span class="kbd">P</span>
+          </div>
+          <div class="shortcut-guide-row">
+            <span>Open Common Catalog</span>
+            <span class="kbd">Q</span>
+          </div>
+          <div class="shortcut-guide-row">
+            <span>Inter-Site Stock Transfer</span>
+            <span class="kbd">T</span>
+          </div>
+          <div class="shortcut-guide-row">
+            <span>Quick Inward Delivery Challan</span>
+            <span class="kbd">I</span>
+          </div>
+          <div class="shortcut-guide-row">
+            <span>Issue / Consume On Site</span>
+            <span class="kbd">O</span>
+          </div>
+          <div class="shortcut-guide-row">
+            <span>Focus Global Search</span>
+            <span class="kbd">/</span>
+          </div>
+          <div class="shortcut-guide-row">
+            <span>Switch to Overview & Workforce</span>
+            <span class="kbd">1</span>
+          </div>
+          <div class="shortcut-guide-row">
+            <span>Switch to Sites & Staffing</span>
+            <span class="kbd">2</span>
+          </div>
+          <div class="shortcut-guide-row">
+            <span>Switch to Inventory Master</span>
+            <span class="kbd">3</span>
+          </div>
+          <div class="shortcut-guide-row">
+            <span>Switch to Operations & Multi-Pad</span>
+            <span class="kbd">4</span>
+          </div>
+          <div class="shortcut-guide-row">
+            <span>Switch to Delivery Log</span>
+            <span class="kbd">5</span>
+          </div>
+          <div class="shortcut-guide-row">
+            <span>Switch to BOQ Statement</span>
+            <span class="kbd">6</span>
+          </div>
+          <div class="shortcut-guide-row">
+            <span>Switch to Workers & Payroll</span>
+            <span class="kbd">7</span>
+          </div>
+          <div class="shortcut-guide-row">
+            <span>Add Worker / Laborer</span>
+            <span class="kbd">W</span>
+          </div>
+          <div class="shortcut-guide-row">
+            <span>Close Active Modal</span>
+            <span class="kbd">Esc</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary btn-sm" onclick="closeModal('modal-shortcuts-guide')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================== -->
+  <!-- MODAL: Amitus Infra Registered Office & Contact -->
+  <!-- ==================================================== -->
+  <div class="modal-overlay" id="modal-amitus-office">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>🏢 Amitus Infra — Registered Office & Directions</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-amitus-office')">✕</button>
+      </div>
+      <div class="modal-body" style="text-align:center;">
+        <div class="office-modal-logo">
+          <img src="logo.jpg" alt="Amitus Infra Logo">
+        </div>
+        <h2 style="font-size:1.4rem;font-weight:900;letter-spacing:0.04em;text-transform:uppercase;margin-top:0.25rem;">
+          AMITUS <span style="color:var(--primary);">INFRA</span>
+        </h2>
+        <p style="font-size:0.775rem;color:var(--text-muted);font-weight:700;letter-spacing:0.06em;margin-top:0.15rem;">
+          BUILDING HOME OF YOUR DREAM • SINCE 2001
+        </p>
+
+        <div class="office-info-grid" style="text-align:left;">
+          <div class="office-info-item">
+            <div class="office-info-icon">📍</div>
+            <div>
+              <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:700;">Office Address:</div>
+              <div style="font-size:0.85rem;font-weight:600;margin-top:0.2rem;color:var(--text-main);line-height:1.4;">
+                Amitus Infra<br>
+                Water Supply Road, Shibnagar, Dhaleswar<br>
+                Agartala, Tripura - 799001 / 799004
+              </div>
+            </div>
+          </div>
+
+          <div class="office-info-item">
+            <div class="office-info-icon">📞</div>
+            <div>
+              <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:700;">Phone / Direct WhatsApp:</div>
+              <div style="font-size:0.875rem;font-weight:700;margin-top:0.2rem;">
+                <a href="tel:09863177877" style="color:var(--primary);text-decoration:none;">098631 77877</a>
+                <span style="color:var(--text-muted);margin:0 0.35rem;">•</span>
+                <a href="https://wa.me/919863177877?text=Hi%20Amitus%20Infra,%20regarding%20construction%20project" target="_blank" style="color:var(--success);text-decoration:none;">WhatsApp Direct ↗</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="office-info-item">
+            <div class="office-info-icon">✉️</div>
+            <div>
+              <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:700;">Official Email:</div>
+              <div style="font-size:0.85rem;font-weight:600;margin-top:0.2rem;">
+                <a href="mailto:amitusinfra2014@gmail.com" style="color:var(--text-main);text-decoration:none;">amitusinfra2014@gmail.com</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="office-action-btns">
+          <a href="https://www.google.com/maps/dir/Amitus+Infra,+Water+Supply+Rd,+Shibnagar,+Dhaleswar,+Agartala,+Tripura+799004/23.8298247,91.2917605/@23.8307982,91.2925526,455m/data=!3m2!1e3!4b1!4m8!4m7!1m5!1m1!1s0x3753f3d8c074ef9b:0x80169c98304c1552!2m2!1d91.2958744!2d23.8313774!1m0?entry=ttu&g_ep=EgoyMDI2MTExNy4wIKXMDSoASAFQAw%3D%3D" target="_blank" class="btn-directions">
+            🗺️ Google Maps Directions ↗
+          </a>
+          <a href="tel:09863177877" class="btn btn-secondary" style="display:flex;align-items:center;justify-content:center;gap:0.35rem;text-decoration:none;font-weight:700;">
+            📞 Call Office (098631 77877)
+          </a>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary btn-sm" onclick="closeModal('modal-amitus-office')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================== -->
+  <!-- MODAL: 9:00 PM WhatsApp Daily Operations Briefing -->
+  <!-- ==================================================== -->
+  <div class="modal-overlay" id="modal-whatsapp-report">
+    <div class="modal-container modal-lg">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>📲 9:00 PM WhatsApp Daily Operations Brief</span>
+          <span class="badge badge-success" style="font-size:0.65rem;margin-left:0.5rem;">🟢 Auto-Brief: 9:00 PM Daily Active</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-whatsapp-report')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="background:var(--bg-subtle);padding:0.75rem 1rem;border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:0.85rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.65rem;">
+          <div>
+            <div style="font-size:0.7rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;">Scheduled Daily Dispatch</div>
+            <div style="font-size:0.875rem;font-weight:700;color:var(--text-main);margin-top:2px;">
+              Every evening at <span style="color:var(--primary);">9:00 PM IST</span> compiled for Director's review.
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.4rem;">
+            <label style="font-size:0.75rem;font-weight:600;color:var(--text-muted);">Send to:</label>
+            <input type="text" id="wa-recipient-phone" value="+91 98631 77877" style="padding:0.35rem 0.6rem;font-size:0.8rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-card);color:var(--text-main);font-weight:600;width:150px;">
+          </div>
+        </div>
+
+        <div style="position:relative;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;">
+            <span style="font-size:0.725rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;">Live Message Preview (Formatted for WhatsApp):</span>
+            <div style="display:flex;gap:0.3rem;">
+              <button class="btn btn-xs" onclick="copyWhatsAppMessage()">📋 Copy Text</button>
+              <button class="btn btn-xs btn-primary" onclick="sendWhatsAppMessage()">📲 Send via WhatsApp ↗</button>
+            </div>
+          </div>
+
+          <!-- WhatsApp Chat Bubble Preview -->
+          <div id="wa-message-preview" style="background:#0b141a;color:#e9edef;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:0.8rem;line-height:1.55;padding:1.15rem;border-radius:var(--radius-md);border:1px solid #1f2c34;white-space:pre-wrap;max-height:360px;overflow-y:auto;box-shadow:inset 0 2px 6px rgba(0,0,0,0.5);">
+            Loading today's 9:00 PM brief...
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
+        <span style="font-size:0.725rem;color:var(--text-muted);">
+          ⚡ Auto-syncs live stock levels, attendance headcount, and cash disbursements across all sites.
+        </span>
+        <div style="display:flex;gap:0.4rem;">
+          <button class="btn btn-sm" onclick="closeModal('modal-whatsapp-report')">Close</button>
+          <button class="btn btn-sm" onclick="copyWhatsAppMessage()">📋 Copy Text</button>
+          <button class="btn btn-primary btn-sm" onclick="sendWhatsAppMessage()">
+            📲 Open in WhatsApp ↗
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==================================================== -->
+  <!-- MODAL: Book Flat Unit -->
+  <!-- ==================================================== -->
+  <div class="modal-overlay" id="modal-book-flat">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>🏢 Book Flat Unit & Register Client</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-book-flat')">✕</button>
+      </div>
+      <form id="form-book-flat" onsubmit="submitBookFlat(event)">
+        <div class="modal-body">
+          <input type="hidden" id="book-flat-id">
+          <div style="background:var(--bg-subtle);padding:0.75rem 1rem;border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:1rem;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <strong id="book-flat-number-display" style="font-size:1.15rem;color:var(--text-main);">Flat 1A</strong>
+                <span id="book-flat-type-display" style="color:var(--text-muted);font-size:0.85rem;margin-left:0.5rem;">(3BHK • 1,350 sq.ft)</span>
+              </div>
+              <span id="book-flat-price-display" class="badge badge-warning" style="font-size:0.85rem;">₹58,00,000</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Buyer Full Name <span class="req">*</span></label>
+            <input type="text" id="book-buyer-name" class="form-control" required placeholder="e.g. Subrata Debbarma">
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">WhatsApp / Mobile No. <span class="req">*</span></label>
+              <input type="tel" id="book-buyer-phone" class="form-control" required placeholder="e.g. 098631 88990">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email Address</label>
+              <input type="email" id="book-buyer-email" class="form-control" placeholder="e.g. buyer@gmail.com">
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label class="form-label">Agreed Total Price (₹) <span class="req">*</span></label>
+              <input type="number" id="book-agreed-price" class="form-control" required min="100000">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Booking Advance Paid (₹)</label>
+              <input type="number" id="book-advance-paid" class="form-control" min="0" value="200000">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Booking Date</label>
+              <input type="date" id="book-date" class="form-control">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm" onclick="closeModal('modal-book-flat')">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm">✅ Confirm Booking & Generate Allotment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================================================== -->
+  <!-- MODAL: Flat Details & Payment Milestone Tracker -->
+  <!-- ==================================================== -->
+  <div class="modal-overlay" id="modal-flat-details">
+    <div class="modal-container modal-lg">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>🏢 Flat Allotment & Milestone Payment Ledger</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-flat-details')">✕</button>
+      </div>
+      <div class="modal-body" id="flat-details-content">
+        <!-- Injected dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-sm" onclick="closeModal('modal-flat-details')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================== -->
+  <!-- MODAL: Add New Vendor / Supplier -->
+  <!-- ==================================================== -->
+  <div class="modal-overlay" id="modal-add-supplier">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>🚚 Add New Material Vendor / Supplier</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-add-supplier')">✕</button>
+      </div>
+      <form id="form-add-supplier" onsubmit="submitAddSupplier(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Business / Agency Name <span class="req">*</span></label>
+            <input type="text" id="sup-name" class="form-control" required placeholder="e.g. Maa Tripura Hardware & Steel">
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Material Category <span class="req">*</span></label>
+              <select id="sup-category" class="form-control" required>
+                <option value="Steel & Structural">Steel & Structural (TMT Rods)</option>
+                <option value="Cement & Binding">Cement & Binding (UltraTech, Star)</option>
+                <option value="Aggregates & Sand">Aggregates & Sand (River Sand, Stone)</option>
+                <option value="Masonry & Bricks">Masonry & Bricks (Red Kiln Bricks)</option>
+                <option value="Electrical & Plumbing">Electrical & Plumbing</option>
+                <option value="Flooring & Tiles">Flooring, Tiles & Marble</option>
+                <option value="Paints & Chemical">Paints, Primer & Chemicals</option>
+                <option value="General Hardware">General Hardware & Tools</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Contact Person</label>
+              <input type="text" id="sup-contact" class="form-control" placeholder="e.g. Sanjay Saha">
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Phone / WhatsApp <span class="req">*</span></label>
+              <input type="tel" id="sup-phone" class="form-control" required placeholder="e.g. 094361 XXXXX">
+            </div>
+            <div class="form-group">
+              <label class="form-label">GSTIN Number</label>
+              <input type="text" id="sup-gstin" class="form-control" placeholder="e.g. 16AABCT9981Q1Z4">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Shop / Depot Address in Agartala</label>
+            <input type="text" id="sup-address" class="form-control" placeholder="e.g. Battala Iron Market / Dhaleswar Road #4">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm" onclick="closeModal('modal-add-supplier')">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm">💾 Save Supplier</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================================================== -->
+  <!-- MODAL: Log Vendor Bill / Challan -->
+  <!-- ==================================================== -->
+  <div class="modal-overlay" id="modal-add-vendor-bill">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>📑 Log Vendor Material Bill / Challan</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-add-vendor-bill')">✕</button>
+      </div>
+      <form id="form-add-vendor-bill" onsubmit="submitAddVendorBill(event)">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Supplier / Vendor <span class="req">*</span></label>
+              <select id="bill-supplier-id" class="form-control" required>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Project Charged <span class="req">*</span></label>
+              <select id="bill-project-id" class="form-control project-selector-dropdown" required>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label class="form-label">Invoice / Challan # <span class="req">*</span></label>
+              <input type="text" id="bill-inv-num" class="form-control" required placeholder="e.g. INV-2026-94">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Bill Date <span class="req">*</span></label>
+              <input type="date" id="bill-date" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Payment Due Date</label>
+              <input type="date" id="bill-due-date" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Materials Supplied / Description <span class="req">*</span></label>
+            <input type="text" id="bill-desc" class="form-control" required placeholder="e.g. 500 Bags UltraTech Cement for 3rd Floor Slab">
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Total Bill Amount (₹) <span class="req">*</span></label>
+              <input type="number" id="bill-total-amt" class="form-control" required min="1" placeholder="e.g. 195000">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Initial Payment Made Now (₹)</label>
+              <input type="number" id="bill-paid-amt" class="form-control" min="0" value="0">
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Payment Mode (if paid)</label>
+              <select id="bill-pay-mode" class="form-control">
+                <option value="Bank / NEFT">Bank Transfer / NEFT</option>
+                <option value="Cheque">Cheque</option>
+                <option value="UPI / PhonePe">UPI / PhonePe</option>
+                <option value="Cash">Cash</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Cheque / Transaction Ref</label>
+              <input type="text" id="bill-pay-ref" class="form-control" placeholder="e.g. Cheque #440192 / UTR">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm" onclick="closeModal('modal-add-vendor-bill')">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm">💾 Record Bill into Khata</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================================================== -->
+  <!-- MODAL: Pay Vendor Bill (Payment Recording) -->
+  <!-- ==================================================== -->
+  <div class="modal-overlay" id="modal-pay-vendor-bill">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>💵 Record Payment to Supplier</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-pay-vendor-bill')">✕</button>
+      </div>
+      <form id="form-pay-vendor-bill" onsubmit="submitPayVendorBill(event)">
+        <div class="modal-body">
+          <input type="hidden" id="pay-bill-id">
+          <div style="background:var(--bg-subtle);padding:0.75rem 1rem;border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:1rem;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <strong id="pay-supplier-name" style="font-size:1.05rem;color:var(--text-main);">Supplier</strong>
+                <div id="pay-bill-inv" style="font-size:0.8rem;color:var(--text-muted);margin-top:2px;">Invoice #</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;">Balance Due</div>
+                <div id="pay-bill-balance" style="font-size:1.15rem;font-weight:800;color:var(--danger);">₹0</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Payment Amount (₹) <span class="req">*</span></label>
+              <input type="number" id="pay-bill-amount" class="form-control" required min="1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Payment Date <span class="req">*</span></label>
+              <input type="date" id="pay-bill-date" class="form-control" required>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Payment Mode <span class="req">*</span></label>
+              <select id="pay-bill-mode" class="form-control" required>
+                <option value="Bank Transfer / NEFT">Bank Transfer / NEFT</option>
+                <option value="Cheque">Cheque</option>
+                <option value="UPI / PhonePe">UPI / PhonePe</option>
+                <option value="Cash">Cash</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Cheque / Transaction Ref</label>
+              <input type="text" id="pay-bill-ref" class="form-control" placeholder="e.g. UTR / Cheque #8812">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm" onclick="closeModal('modal-pay-vendor-bill')">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm">✅ Confirm Payment & Update Khata</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================================================== -->
+  <!-- MODAL: Add Site Progress Photo -->
+  <!-- ==================================================== -->
+  <div class="modal-overlay" id="modal-add-site-photo">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>📸 Add Construction Site Progress Photo</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-add-site-photo')">✕</button>
+      </div>
+      <form id="form-add-site-photo" onsubmit="submitAddSitePhoto(event)">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Site Project <span class="req">*</span></label>
+              <select id="photo-project-id" class="form-control project-selector-dropdown" required>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Civil Construction Phase <span class="req">*</span></label>
+              <select id="photo-phase" class="form-control" required>
+                <option value="Foundation & Footing">Foundation & Footing</option>
+                <option value="Plinth Beam & Earth Filling">Plinth Beam & Earth Filling</option>
+                <option value="Column & Frame RCC">Column & Frame RCC</option>
+                <option value="Slab Casting & Shuttering">Slab Casting & Shuttering</option>
+                <option value="Brick Masonry">Brick Masonry</option>
+                <option value="Internal & External Plaster">Internal & External Plaster</option>
+                <option value="Electrical & Plumbing Concealed">Electrical & Plumbing Concealed</option>
+                <option value="Flooring, Tiles & Painting">Flooring, Tiles & Painting</option>
+                <option value="Finishing & Handover">Finishing & Handover</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Photo Title / Milestone <span class="req">*</span></label>
+            <input type="text" id="photo-title" class="form-control" required placeholder="e.g. 3rd Floor Roof Slab Casting in Progress">
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Photo Date <span class="req">*</span></label>
+              <input type="date" id="photo-date" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Image URL / Local File</label>
+              <input type="text" id="photo-image-url" class="form-control" placeholder="e.g. logo.jpg or image URL" value="logo.jpg">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Engineering Notes / Description</label>
+            <textarea id="photo-caption" class="form-control" rows="2" placeholder="e.g. M20 mix poured with needle vibrator. Steel rebar inspection cleared."></textarea>
+          </div>
+
+          <div class="form-group" style="display:flex;align-items:center;gap:0.5rem;">
+            <input type="checkbox" id="photo-showcase-home" checked style="width:16px;height:16px;">
+            <label for="photo-showcase-home" style="font-size:0.85rem;font-weight:600;color:var(--text-main);">Showcase on Public Home Page</label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm" onclick="closeModal('modal-add-site-photo')">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm">💾 Save Photo to Progress Gallery</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================================================== -->
+  <!-- MODAL: PWA Install App Guide -->
+  <!-- ==================================================== -->
+  <div class="modal-overlay" id="modal-pwa-guide">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>📲 Install Amitus Infra App on Phone / Desktop</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-pwa-guide')">✕</button>
+      </div>
+      <div class="modal-body" style="text-align:center;">
+        <div style="width:64px;height:64px;border-radius:14px;background:#000;border:2px solid var(--primary);margin:0 auto 1rem auto;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+          <img src="logo.jpg" alt="Amitus Infra" style="width:100%;height:100%;object-fit:contain;">
+        </div>
+        <h3 style="font-size:1.2rem;font-weight:800;color:var(--text-main);">Install Amitus Infra App</h3>
+        <p style="font-size:0.825rem;color:var(--text-muted);margin-top:0.35rem;line-height:1.5;">
+          Run Amitus Infra as a standalone native app on your phone with instant 1-tap launch, offline support, and full-screen workspace.
+        </p>
+
+        <div style="background:var(--bg-subtle);padding:1rem;border-radius:var(--radius-sm);border:1px solid var(--border);text-align:left;margin-top:1rem;font-size:0.825rem;">
+          <div style="font-weight:700;color:var(--primary);margin-bottom:0.4rem;">📱 Android (Chrome / Brave / Edge):</div>
+          <div>Tap the <strong>three dots (⋮)</strong> in your browser menu, then select <strong>"Add to Home screen"</strong> or <strong>"Install app"</strong>.</div>
+
+          <div style="font-weight:700;color:var(--primary);margin:0.85rem 0 0.4rem 0;">🍎 iPhone / iPad (Safari):</div>
+          <div>Tap the <strong>Share button (square with arrow ↑)</strong> at the bottom of Safari, scroll down and tap <strong>"Add to Home Screen"</strong>.</div>
+
+          <div style="font-weight:700;color:var(--primary);margin:0.85rem 0 0.4rem 0;">💻 Laptop / PC (Chrome / Edge):</div>
+          <div>Click the <strong>Install icon ⊕</strong> on the right side of the URL address bar.</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary btn-sm" onclick="closeModal('modal-pwa-guide')">Got It</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==================================================== -->
+  <!-- MODAL: Director & Owner Authentication -->
+  <!-- ==================================================== -->
+  <div class="modal-overlay" id="modal-director-login">
+    <div class="modal-container" style="max-width:440px;">
+      <div class="modal-header" style="border-bottom:none;padding-bottom:0;">
+        <div class="modal-title">
+          <span>🔒 Director Portal Access</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-director-login')">✕</button>
+      </div>
+      <form id="form-director-login" onsubmit="submitDirectorLogin(event)">
+        <div class="modal-body" style="padding-top:0.5rem;text-align:center;">
+          <div style="width:68px;height:68px;border-radius:50%;background:#000;border:2px solid var(--primary);margin:0 auto 1rem auto;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 4px 16px rgba(245,158,11,0.25);">
+            <img src="logo.jpg" alt="Amitus Infra" style="width:100%;height:100%;object-fit:contain;">
+          </div>
+          <h3 style="font-size:1.25rem;font-weight:900;color:var(--text-main);letter-spacing:0.02em;">
+            AMITUS <span style="color:var(--primary);">INFRA</span>
+          </h3>
+          <p style="font-size:0.775rem;color:var(--text-muted);margin-top:0.25rem;margin-bottom:1.5rem;">
+            Founder & Director Santanu Bhaumik • Executive Security
+          </p>
+
+          <div style="text-align:left;">
+            <div class="form-group" style="margin-bottom:1rem;">
+              <label class="form-label">Username or Mobile <span class="req">*</span></label>
+              <input type="text" id="login-username" class="form-control" required placeholder="e.g. amitus or 098631 77877" value="amitus" style="font-weight:600;">
+            </div>
+
+            <div class="form-group" style="margin-bottom:1rem;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem;">
+                <label class="form-label" style="margin-bottom:0;">Password or 4/5-Digit PIN <span class="req">*</span></label>
+                <span style="font-size:0.7rem;color:var(--primary);cursor:pointer;" onclick="toggleLoginPasswordVisibility()">👁️ Show</span>
+              </div>
+              <input type="password" id="login-password" class="form-control" required placeholder="Enter password or PIN (e.g. 77877)" style="font-weight:700;letter-spacing:0.05em;font-size:1rem;">
+            </div>
+
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1.25rem;">
+              <input type="checkbox" id="login-remember-me" checked style="width:16px;height:16px;cursor:pointer;">
+              <label for="login-remember-me" style="font-size:0.8rem;color:var(--text-main);cursor:pointer;font-weight:600;">
+                Keep me signed in on this phone / browser
+              </label>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width:100%;padding:0.75rem;font-size:0.95rem;font-weight:800;border-radius:var(--radius-sm);box-shadow:0 4px 14px rgba(245,158,11,0.35);">
+            🔓 Unlock Business Management Portal
+          </button>
+
+          <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.65rem 0.85rem;margin-top:1.25rem;font-size:0.725rem;color:var(--text-muted);text-align:left;">
+            <strong style="color:var(--primary);">Initial Credentials:</strong> User: <code style="color:var(--text-main);">amitus</code> • PIN: <code style="color:var(--text-main);">77877</code> (or <code style="color:var(--text-main);">amitus2001</code>).<br>
+            <span style="color:var(--text-muted);">You can customize these anytime once logged in.</span>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================================================== -->
+  <!-- MODAL: Customize Director Credentials -->
+  <!-- ==================================================== -->
+  <div class="modal-overlay" id="modal-change-credentials">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>⚙️ Customize Director Login Credentials</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-change-credentials')">✕</button>
+      </div>
+      <form id="form-change-credentials" onsubmit="submitChangeCredentials(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Access Protection Mode</label>
+            <select id="cred-mode" class="form-control">
+              <option value="hybrid" selected>Hybrid Mode (Home Showcase public for clients, Operations locked)</option>
+              <option value="full">Full Lockdown (Entire site locked, nobody sees anything without login)</option>
+            </select>
+            <div style="font-size:0.725rem;color:var(--text-muted);margin-top:4px;">
+              In Hybrid mode, prospective flat buyers can view your homes and submit inquiries.
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Director Username</label>
+            <input type="text" id="cred-username" class="form-control" value="amitus" required>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">New Password</label>
+              <input type="text" id="cred-password" class="form-control" placeholder="e.g. amitus2001" value="amitus2001" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Quick 4/5-Digit PIN</label>
+              <input type="text" id="cred-pin" class="form-control" placeholder="e.g. 77877" value="77877" required>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm" onclick="closeModal('modal-change-credentials')">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm">💾 Update Credentials</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Amitus Infra Official App Footer -->
+  <footer class="app-footer">
+    <div class="footer-content">
+      <div class="footer-left">
+        <img src="logo.jpg" alt="Amitus Infra" class="footer-logo">
+        <div>
+          <strong style="color:var(--text-main);letter-spacing:0.04em;">AMITUS INFRA</strong>
+          <span style="font-size:0.75rem;color:var(--text-muted);">— Building Home Of Your Dream (Since 2001)</span>
+          <div style="font-size:0.725rem;color:var(--text-muted);margin-top:2px;">
+            Water Supply Road, Shibnagar, Agartala, Tripura - 799001
+          </div>
+        </div>
+      </div>
+      <div class="footer-links">
+        <a href="tel:09863177877">📞 098631 77877</a>
+        <a href="mailto:amitusinfra2014@gmail.com">✉️ amitusinfra2014@gmail.com</a>
+        <a href="https://www.google.com/maps/dir/Amitus+Infra,+Water+Supply+Rd,+Shibnagar,+Dhaleswar,+Agartala,+Tripura+799004/23.8298247,91.2917605/@23.8307982,91.2925526,455m/data=!3m2!1e3!4b1!4m8!4m7!1m5!1m1!1s0x3753f3d8c074ef9b:0x80169c98304c1552!2m2!1d91.2958744!2d23.8313774!1m0?entry=ttu&g_ep=EgoyMDI2MTExNy4wIKXMDSoASAFQAw%3D%3D" target="_blank" style="color:var(--primary);font-weight:700;">
+          🗺️ Get Directions on Map ↗
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
