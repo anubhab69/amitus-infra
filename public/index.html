@@ -33,7 +33,7 @@
       </div>
 
       <!-- Quick Project Filter Dropdown in Header -->
-      <div class="header-center-selector">
+      <div class="header-center-selector" id="header-site-selector" style="display:none;">
         <label for="header-project-select">Site:</label>
         <select id="header-project-select">
           <option value="all">All Sites</option>
@@ -62,15 +62,17 @@
         <button class="office-contact-btn" onclick="openModal('modal-amitus-office')" title="Amitus Infra Office, Contact & Google Maps Directions">
           📍 Shibnagar, Agartala • 📞 098631 77877
         </button>
-        <button class="btn btn-sm btn-accent" onclick="openWhatsAppReportModal()" title="9:00 PM Daily WhatsApp Operations Brief">
-          📲 Daily Brief <span class="badge" style="font-size:0.6rem;background:#000;color:#f59e0b;padding:1px 5px;margin-left:3px;border-radius:3px;">9 PM</span>
-        </button>
-        <button class="btn btn-sm" onclick="openPresetsModal()" title="Common Construction Catalog (Q)">
-          ⭐ Catalog <span class="kbd">Q</span>
-        </button>
-        <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-item')" title="Add Material (N)">
-          ➕ Material <span class="kbd">N</span>
-        </button>
+        <div id="header-ops-actions" style="display:none;align-items:center;gap:0.35rem;">
+          <button class="btn btn-sm btn-accent" onclick="openWhatsAppReportModal()" title="9:00 PM Daily WhatsApp Operations Brief">
+            📲 Daily Brief <span class="badge" style="font-size:0.6rem;background:#000;color:#f59e0b;padding:1px 5px;margin-left:3px;border-radius:3px;">9 PM</span>
+          </button>
+          <button class="btn btn-sm" onclick="openPresetsModal()" title="Common Construction Catalog (Q)">
+            ⭐ Catalog <span class="kbd">Q</span>
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-item')" title="Add Material (N)">
+            ➕ Material <span class="kbd">N</span>
+          </button>
+        </div>
         <button class="btn btn-sm btn-outline" id="pwa-install-btn" onclick="triggerPWAInstall()" style="display:none;background:rgba(245,158,11,0.15);border-color:var(--primary);color:var(--primary);font-weight:700;" title="Install Amitus Infra on Phone / Desktop">📲 Install App</button>
         <button class="btn btn-sm" id="theme-toggle-btn" title="Toggle Theme">
           🌙 Dark
@@ -81,8 +83,8 @@
       </div>
     </div>
 
-    <!-- Minimalist Navigation Tabs Bar with Dedicated Project Tab -->
-    <nav class="nav-tabs-bar">
+    <!-- Minimalist Navigation Tabs Bar with Dedicated Project Tab (Visible only after Director Login) -->
+    <nav class="nav-tabs-bar" id="main-nav-tabs" style="display:none;">
       <button class="nav-tab-btn active" data-tab="home">
         🏠 Home Showcase
       </button>

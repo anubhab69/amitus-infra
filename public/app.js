@@ -21,8 +21,8 @@ const state = {
   salaryPayments: [],
   auth: {
     isAuthenticated: false,
-    token: localStorage.getItem('amitus_auth_token') || null,
-    user: localStorage.getItem('amitus_auth_user') || null,
+    token: localStorage.getItem('amitus_auth_token') || sessionStorage.getItem('amitus_auth_token') || null,
+    user: localStorage.getItem('amitus_auth_user') || sessionStorage.getItem('amitus_auth_user') || null,
     mode: 'hybrid'
   },
   flats: [],
@@ -164,6 +164,10 @@ async function loadData() {
     const data = await res.json();
     state.auth.isAuthenticated = !!data.authenticated;
     updateAuthHeaderUi();
+
+    if (!state.auth.isAuthenticated) {
+      state.activeTab = 'home';
+    }
 
     state.settings = data.settings || state.settings;
     state.projects = data.projects || [];
@@ -321,30 +325,65 @@ function setupKeyboardShortcuts() {
       case '7': switchTab('workforce-payroll'); break;
       case 'w':
         e.preventDefault();
+        if (!state.auth || !state.auth.isAuthenticated) {
+          openDirectorLoginModal();
+          showToast('🔒 Please enter Director credentials to manage workforce', 'warning');
+          return;
+        }
         openAddEmployeeModal();
         break;
       case 'n':
         e.preventDefault();
+        if (!state.auth || !state.auth.isAuthenticated) {
+          openDirectorLoginModal();
+          showToast('🔒 Please enter Director credentials to add material', 'warning');
+          return;
+        }
         openModal('modal-add-item');
         break;
       case 'p':
         e.preventDefault();
+        if (!state.auth || !state.auth.isAuthenticated) {
+          openDirectorLoginModal();
+          showToast('🔒 Please enter Director credentials to add projects', 'warning');
+          return;
+        }
         openModal('modal-add-project');
         break;
       case 'q':
         e.preventDefault();
+        if (!state.auth || !state.auth.isAuthenticated) {
+          openDirectorLoginModal();
+          showToast('🔒 Please enter Director credentials to access catalog', 'warning');
+          return;
+        }
         openPresetsModal();
         break;
       case 't':
         e.preventDefault();
+        if (!state.auth || !state.auth.isAuthenticated) {
+          openDirectorLoginModal();
+          showToast('🔒 Please enter Director credentials for stock transfers', 'warning');
+          return;
+        }
         openTransferModal();
         break;
       case 'i':
         e.preventDefault();
+        if (!state.auth || !state.auth.isAuthenticated) {
+          openDirectorLoginModal();
+          showToast('🔒 Please enter Director credentials for inward challans', 'warning');
+          return;
+        }
         openInwardModal();
         break;
       case 'o':
         e.preventDefault();
+        if (!state.auth || !state.auth.isAuthenticated) {
+          openDirectorLoginModal();
+          showToast('🔒 Please enter Director credentials for outward issue', 'warning');
+          return;
+        }
         openOutwardModal();
         break;
       case '/':
@@ -3613,12 +3652,18 @@ function renderHomePage(container) {
         <a href="https://wa.me/919863177877?text=Hi%20Amitus%20Infra,%20I%20am%20interested%20in%20your%20construction%20and%20apartment%20projects" target="_blank" class="btn btn-secondary" style="padding:0.65rem 1.25rem;font-size:0.9rem;font-weight:700;display:inline-flex;align-items:center;gap:0.45rem;text-decoration:none;">
           💬 WhatsApp Inquiry ↗
         </a>
-        <button class="btn btn-sm" onclick="switchTab('projects')" style="padding:0.65rem 1.15rem;font-size:0.875rem;">
-          🏢 View All Site Projects →
-        </button>
-        <button class="btn btn-sm" onclick="switchTab('dashboard')" style="padding:0.65rem 1.15rem;font-size:0.875rem;">
-          📊 Site Operations Portal →
-        </button>
+        ${state.auth && state.auth.isAuthenticated ? `
+          <button class="btn btn-sm" onclick="switchTab('projects')" style="padding:0.65rem 1.15rem;font-size:0.875rem;">
+            🏢 View All Site Projects →
+          </button>
+          <button class="btn btn-sm btn-accent" onclick="switchTab('dashboard')" style="padding:0.65rem 1.15rem;font-size:0.875rem;">
+            📊 Site Operations Portal →
+          </button>
+        ` : `
+          <button class="btn btn-sm btn-accent" onclick="openDirectorLoginModal()" style="padding:0.65rem 1.15rem;font-size:0.875rem;">
+            🔐 Director Portal Login →
+          </button>
+        `}
       </div>
 
       <div style="margin-top:1.75rem;padding-top:1.25rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:1rem;flex-wrap:wrap;font-size:0.8rem;color:var(--text-muted);">
@@ -5514,13 +5559,24 @@ async function deleteSitePhoto(photoId) {
 function updateAuthHeaderUi() {
   const loginBtn = document.getElementById('header-login-btn');
   const userBadge = document.getElementById('header-user-badge');
+  const navTabs = document.getElementById('main-nav-tabs');
+  const opsActions = document.getElementById('header-ops-actions');
+  const siteSelector = document.getElementById('header-site-selector');
 
-  if (state.auth && state.auth.isAuthenticated) {
+  const isAuth = !!(state.auth && state.auth.isAuthenticated);
+
+  if (isAuth) {
     if (loginBtn) loginBtn.style.display = 'none';
     if (userBadge) userBadge.style.display = 'inline-flex';
+    if (navTabs) navTabs.style.display = 'flex';
+    if (opsActions) opsActions.style.display = 'inline-flex';
+    if (siteSelector) siteSelector.style.display = 'flex';
   } else {
     if (loginBtn) loginBtn.style.display = 'inline-flex';
     if (userBadge) userBadge.style.display = 'none';
+    if (navTabs) navTabs.style.display = 'none';
+    if (opsActions) opsActions.style.display = 'none';
+    if (siteSelector) siteSelector.style.display = 'none';
   }
 }
 
