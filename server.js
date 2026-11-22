@@ -476,7 +476,7 @@ const server = http.createServer(async (req, res) => {
   try {
     if (pathname.startsWith('/api/')) {
 
-      // 0. Director Authentication API
+      // 0. Authentication API
       if (pathname === '/api/auth/login' && method === 'POST') {
         loadDatabase();
         const body = await parseJsonBody(req);
@@ -487,30 +487,39 @@ const server = http.createServer(async (req, res) => {
           phone: '09863177877',
           password: 'amitus2001',
           pin: '77877',
-          directorName: 'Santanu Bhaumik'
+          supervisorPin: '1234',
+          directorName: 'Santanu Bhaumik',
+          supervisorName: 'Site Supervisor (Munshi)'
         };
 
         const u = (body.username || '').trim().toLowerCase();
         const p = (body.password || body.pin || '').trim();
+        const reqRole = (body.role || '').trim().toLowerCase();
 
-        const validUser = !authConfig.username ||
-                          u === authConfig.username.toLowerCase() ||
-                          u === (authConfig.phone || '').replace(/\D/g, '') ||
-                          u === '09863177877' ||
-                          u === 'amitus' ||
-                          u === 'director' ||
-                          u === 'admin';
+        const directorPin = (authConfig.pin || '77877').trim();
+        const directorPass = (authConfig.password || 'amitus2001').trim();
+        const directorUser = (authConfig.username || 'amitus').trim().toLowerCase();
+        const supervisorPin = (authConfig.supervisorPin || '1234').trim();
 
-        const validPass = p === authConfig.password ||
-                          p === authConfig.pin ||
-                          p === 'amitus2001' ||
-                          p === '77877';
+        // 1. Check Director Credentials
+        const validDirectorUser = !directorUser ||
+                                  u === directorUser ||
+                                  u === (authConfig.phone || '').replace(/\D/g, '') ||
+                                  u === '09863177877' ||
+                                  u === 'amitus' ||
+                                  u === 'director' ||
+                                  u === 'admin';
 
-        if (validUser && validPass) {
+        const validDirectorPass = p === directorPass ||
+                                  p === directorPin ||
+                                  p === 'amitus2001' ||
+                                  p === '77877';
+
+        if (reqRole !== 'supervisor' && validDirectorUser && validDirectorPass) {
           const token = crypto.randomBytes(32).toString('hex');
           const session = {
             token,
-            user: authConfig.directorName || 'Santanu Bhaumik',
+            user: authConfig.directorName || 'Santanu Bhaumik (Director)',
             role: 'director',
             loginTime: Date.now()
           };
@@ -519,21 +528,103 @@ const server = http.createServer(async (req, res) => {
             success: true,
             token,
             user: session.user,
+            role: 'director',
             mode: authConfig.mode || 'hybrid',
             message: 'Director authentication successful'
           });
         }
 
+        // 2. Check Site Supervisor Credentials
+        const validSupervisorUser = !u || u === 'supervisor' || u === 'munshi' || u === 'site' || u === 'amitus' || reqRole === 'supervisor';
+        const validSupervisorPin = p === supervisorPin || p === '1234';
+
+        if (validSupervisorUser && validSupervisorPin) {
+          const token = crypto.randomBytes(32).toString('hex');
+          const session = {
+            token,
+            user: authConfig.supervisorName || 'Site Supervisor (Munshi)',
+            role: 'supervisor',
+            loginTime: Date.now()
+          };
+          activeSessions.set(token, session);
+          return sendJson(res, 200, {
+            success: true,
+            token,
+            user: session.user,
+            role: 'supervisor',
+            mode: authConfig.mode || 'hybrid',
+            message: 'Site Supervisor authentication successful'
+          });
+        }
+
         return sendJson(res, 401, {
           success: false,
-          error: 'Invalid Director Username, Password, or PIN'
+          error: 'Invalid credentials. Enter Director PIN (77877) or Supervisor PIN (1234)'
+        });
+      }
+
+      // 0b. Google Sign-In Authentication (OAuth 2.0)
+      if (pathname === '/api/auth/google' && method === 'POST') {
+        loadDatabase();
+        const body = await parseJsonBody(req);
+        const { credential, email } = body;
+        const authConfig = dbCache.settings.auth || {};
+
+        let userEmail = '';
+        if (credential) {
+          try {
+            const parts = credential.split('.');
+            if (parts.length >= 2) {
+              const payloadStr = Buffer.from(parts[1], 'base64').toString('utf8');
+              const payload = JSON.parse(payloadStr);
+              userEmail = (payload.email || '').toLowerCase().trim();
+            }
+          } catch (e) {
+            console.error('Error decoding Google JWT:', e);
+          }
+        }
+        if (!userEmail && email) {
+          userEmail = email.toLowerCase().trim();
+        }
+
+        const allowedEmails = [
+          (authConfig.googleEmail || '').toLowerCase().trim(),
+          'amitusinfra2014@gmail.com',
+          'anubhabbhaumik@gmail.com'
+        ].filter(Boolean);
+
+        const isAuthorized = !authConfig.googleEmail || allowedEmails.includes(userEmail);
+
+        if (userEmail && isAuthorized) {
+          const token = crypto.randomBytes(32).toString('hex');
+          const session = {
+            token,
+            user: authConfig.directorName || `Director (${userEmail})`,
+            email: userEmail,
+            role: 'director',
+            loginTime: Date.now()
+          };
+          activeSessions.set(token, session);
+          return sendJson(res, 200, {
+            success: true,
+            token,
+            user: session.user,
+            role: 'director',
+            mode: authConfig.mode || 'hybrid',
+            message: 'Google Sign-In successful'
+          });
+        }
+
+        return sendJson(res, 403, {
+          success: false,
+          error: `Google account (${userEmail || 'unknown'}) is not registered as Director. Please authorize this email in Director Settings.`
         });
       }
 
       if (pathname === '/api/auth/verify' && method === 'POST') {
         const session = getAuthenticatedUser(req);
         if (session) {
-          return sendJson(res, 200, { success: true, authenticated: true, user: session.user });
+          return sendJson(res, 200, { success: true, authenticated: true, user: session.user, role: session.role });
         }
         return sendJson(res, 401, { success: false, authenticated: false, error: 'Session expired or invalid' });
       }
@@ -550,16 +641,20 @@ const server = http.createServer(async (req, res) => {
       if (pathname === '/api/auth/update-credentials' && method === 'POST') {
         const session = getAuthenticatedUser(req);
         if (!session) return sendJson(res, 401, { error: 'Authentication required to update credentials' });
+        if (session.role !== 'director') return sendJson(res, 403, { error: 'Only Director can update portal credentials' });
 
         const body = await parseJsonBody(req);
         dbCache.settings.auth = dbCache.settings.auth || {};
         if (body.username) dbCache.settings.auth.username = body.username.trim();
         if (body.password) dbCache.settings.auth.password = body.password.trim();
         if (body.pin) dbCache.settings.auth.pin = body.pin.trim();
+        if (body.supervisorPin) dbCache.settings.auth.supervisorPin = body.supervisorPin.trim();
+        if (body.googleClientId) dbCache.settings.auth.googleClientId = body.googleClientId.trim();
+        if (body.googleEmail) dbCache.settings.auth.googleEmail = body.googleEmail.trim().toLowerCase();
         if (body.mode) dbCache.settings.auth.mode = body.mode;
 
         saveDatabase();
-        return sendJson(res, 200, { success: true, message: 'Director credentials updated successfully!' });
+        return sendJson(res, 200, { success: true, message: 'Security credentials and PINs updated successfully!' });
       }
 
       // 1. Full Data + Stats
@@ -609,20 +704,74 @@ const server = http.createServer(async (req, res) => {
           });
         }
 
-        const stats = computeStats(dbCache);
         const safeSettings = { ...dbCache.settings };
         if (safeSettings.auth) {
           safeSettings.auth = {
             enabled: true,
-            mode: safeSettings.auth.mode,
-            username: safeSettings.auth.username,
-            pin: safeSettings.auth.pin
+            mode: safeSettings.auth.mode || 'hybrid',
+            username: safeSettings.auth.username || 'amitus',
+            pin: safeSettings.auth.pin || '77877',
+            supervisorPin: safeSettings.auth.supervisorPin || '1234',
+            googleClientId: safeSettings.auth.googleClientId || '',
+            googleEmail: safeSettings.auth.googleEmail || 'amitusinfra2014@gmail.com'
           };
         }
+
+        if (session.role === 'supervisor') {
+          return sendJson(res, 200, {
+            success: true,
+            authenticated: true,
+            role: 'supervisor',
+            user: session.user || 'Site Supervisor (Munshi)',
+            settings: safeSettings,
+            projects: dbCache.projects,
+            inventory: dbCache.inventory,
+            transactions: dbCache.transactions,
+            employees: (dbCache.employees || []).map(e => ({
+              id: e.id,
+              name: e.name,
+              phone: e.phone,
+              role: e.role,
+              trade: e.trade || e.role,
+              siteId: e.siteId,
+              wageType: e.wageType,
+              status: e.status
+            })),
+            salaryPayments: [],
+            flats: (dbCache.flats || []).map(f => ({
+              id: f.id,
+              projectId: f.projectId,
+              flatNumber: f.flatNumber,
+              floor: f.floor,
+              bhk: f.bhk,
+              areaSqFt: f.areaSqFt,
+              status: f.status
+            })),
+            suppliers: (dbCache.suppliers || []).map(s => ({
+              id: s.id,
+              name: s.name,
+              material: s.material,
+              phone: s.phone
+            })),
+            vendorBills: [],
+            attendance: dbCache.attendance || [],
+            sitePhotos: dbCache.sitePhotos || [],
+            presets: presetsCache,
+            stats: {
+              totalMaterials: (dbCache.inventory || []).length,
+              activeWorkers: (dbCache.employees || []).filter(e => e.status === 'Active').length,
+              activeSites: (dbCache.projects || []).length
+            }
+          });
+        }
+
+        const stats = computeStats(dbCache);
 
         return sendJson(res, 200, {
           success: true,
           authenticated: true,
+          role: 'director',
+          user: session.user || 'Santanu Bhaumik (Director)',
           settings: safeSettings,
           projects: dbCache.projects,
           inventory: dbCache.inventory,

@@ -21,10 +21,12 @@ const state = {
   salaryPayments: [],
   auth: {
     isAuthenticated: false,
+    role: localStorage.getItem('amitus_auth_role') || sessionStorage.getItem('amitus_auth_role') || null,
     token: localStorage.getItem('amitus_auth_token') || sessionStorage.getItem('amitus_auth_token') || null,
     user: localStorage.getItem('amitus_auth_user') || sessionStorage.getItem('amitus_auth_user') || null,
     mode: 'hybrid'
   },
+  lang: localStorage.getItem('amitus_lang') || 'en',
   flats: [],
   suppliers: [],
   vendorBills: [],
@@ -57,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   setupKeyboardShortcuts();
   setupEventListeners();
+  applyTranslations();
   loadData();
 });
 
@@ -163,6 +166,8 @@ async function loadData() {
     }
     const data = await res.json();
     state.auth.isAuthenticated = !!data.authenticated;
+    if (data.role) state.auth.role = data.role;
+    if (data.user) state.auth.user = data.user;
     updateAuthHeaderUi();
 
     if (!state.auth.isAuthenticated) {
@@ -404,7 +409,11 @@ function switchTab(tab) {
   if (tab !== 'home' && (!state.auth || !state.auth.isAuthenticated)) {
     state.pendingTargetTab = tab;
     openDirectorLoginModal();
-    showToast('🔒 Please enter Director credentials to unlock internal operations', 'warning');
+    showToast('🔒 Please enter credentials to unlock portal', 'warning');
+    return;
+  }
+  if (state.auth?.role === 'supervisor' && ['flat-booking', 'supplier-khata', 'boq', 'workforce-payroll'].includes(tab)) {
+    showToast('🔒 This tab requires Director access', 'warning');
     return;
   }
   state.activeTab = tab;
@@ -5554,7 +5563,123 @@ async function deleteSitePhoto(photoId) {
 }
 
 // ====================================================
-// DIRECTOR & OWNER AUTHENTICATION SYSTEM
+// BENGALI & ENGLISH I18N LOCALIZATION SYSTEM
+// ====================================================
+const i18n = {
+  en: {
+    homeShowcase: '🏠 Home Showcase',
+    invWorkforce: '📊 Inventory & Workforce',
+    sitesStaffing: '🏢 Sites & Staffing',
+    invMaster: '📦 Inventory Master',
+    opsMultiPad: '⚡ Operations & Multi-Pad',
+    deliveryLog: '📋 Delivery Log',
+    boqStatement: '📑 BOQ Statement',
+    workersPayroll: '👥 Workers & Payroll',
+    civilEstimator: '📐 Civil Estimator',
+    dailyHazira: '📋 Daily Hazira',
+    flatBooking: '🏢 Flat Booking & Sales',
+    supplierKhata: '🚚 Supplier Khata',
+    siteProgress: '📸 Site Progress',
+    siteLabel: 'Site:',
+    dailyBrief: '📲 Daily Brief',
+    catalog: '⭐ Catalog',
+    addMaterial: '➕ Material',
+    login: '🔐 Portal Login',
+    logout: '🚪 Logout',
+    changePassword: '🔑 Change PIN / Pass',
+    directorBadge: '👤 Director',
+    supervisorBadge: '👷 Supervisor (Munshi)',
+    langToggle: '🌐 বাংলা',
+    present: 'Present',
+    halfDay: 'Half Day',
+    absent: 'Absent'
+  },
+  bn: {
+    homeShowcase: '🏠 প্রধান পৃষ্ঠা',
+    invWorkforce: '📊 সামগ্রী ও কর্মীসংখ্যা',
+    sitesStaffing: '🏢 নির্মাণ সাইট সমূহ',
+    invMaster: '📦 সামগ্রী স্টক খাতা',
+    opsMultiPad: '⚡ মাল চালান ও হিসাব প্যাড',
+    deliveryLog: '📋 ডেলিভারি খাতা',
+    boqStatement: '📑 কাজের প্রাক্কলন (BOQ)',
+    workersPayroll: '👥 শ্রমিক ও মজুরি খাতা',
+    civilEstimator: '📐 কংক্রিট ও নির্মাণ হিসাব',
+    dailyHazira: '📋 দৈনিক হাজিরা খাতা',
+    flatBooking: '🏢 ফ্ল্যাট বুকিং ও কিস্তি',
+    supplierKhata: '🚚 মহাজন বকেয়া খাতা',
+    siteProgress: '📸 সাইটের কাজের ছবি',
+    siteLabel: 'সাইট:',
+    dailyBrief: '📲 দৈনিক রিপোর্ট',
+    catalog: '⭐ ক্যাটালগ',
+    addMaterial: '➕ নতুন সামগ্রী',
+    login: '🔐 পোর্টাল লগইন',
+    logout: '🚪 প্রস্থান (Logout)',
+    changePassword: '🔑 পাসওয়ার্ড / পিন বদলান',
+    directorBadge: '👤 ডিরেক্টর',
+    supervisorBadge: '👷 সাইট সুপারভাইজার (মুন্সী)',
+    langToggle: '🌐 English',
+    present: 'উপস্থিত (P)',
+    halfDay: 'অর্ধদিবস (HD)',
+    absent: 'অনুপস্থিত (A)'
+  }
+};
+
+function toggleLanguage() {
+  state.lang = state.lang === 'bn' ? 'en' : 'bn';
+  localStorage.setItem('amitus_lang', state.lang);
+  applyTranslations();
+  renderActiveTab();
+  showToast(state.lang === 'bn' ? 'বাংলা ভাষা চালু করা হয়েছে' : 'Switched to English', 'info');
+}
+
+function applyTranslations() {
+  const dict = i18n[state.lang] || i18n.en;
+  const langBtn = document.getElementById('lang-toggle-btn');
+  if (langBtn) langBtn.textContent = dict.langToggle;
+
+  const loginBtn = document.getElementById('header-login-btn');
+  if (loginBtn) loginBtn.textContent = dict.login;
+
+  const changeCredBtn = document.getElementById('header-change-cred-btn');
+  if (changeCredBtn) changeCredBtn.textContent = dict.changePassword;
+
+  const tabMap = {
+    'home': dict.homeShowcase,
+    'dashboard': dict.invWorkforce,
+    'projects': dict.sitesStaffing,
+    'inventory': dict.invMaster,
+    'shortcuts': dict.opsMultiPad,
+    'transactions': dict.deliveryLog,
+    'boq': dict.boqStatement,
+    'workforce-payroll': dict.workersPayroll,
+    'civil-estimator': dict.civilEstimator,
+    'daily-hazira': dict.dailyHazira,
+    'flat-booking': dict.flatBooking,
+    'supplier-khata': dict.supplierKhata,
+    'site-photos': dict.siteProgress
+  };
+
+  document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+    const tabKey = btn.dataset.tab;
+    if (tabMap[tabKey]) {
+      const counter = btn.querySelector('.tab-counter');
+      const counterHtml = counter ? counter.outerHTML : '';
+      btn.innerHTML = `${tabMap[tabKey]} ${counterHtml}`;
+    }
+  });
+
+  const roleLabel = document.getElementById('header-user-role-label');
+  if (roleLabel && state.auth) {
+    if (state.auth.role === 'supervisor') {
+      roleLabel.innerHTML = `${dict.supervisorBadge}`;
+    } else {
+      roleLabel.innerHTML = `${dict.directorBadge}`;
+    }
+  }
+}
+
+// ====================================================
+// DIRECTOR & SUPERVISOR AUTHENTICATION SYSTEM
 // ====================================================
 function updateAuthHeaderUi() {
   const loginBtn = document.getElementById('header-login-btn');
@@ -5564,13 +5689,39 @@ function updateAuthHeaderUi() {
   const siteSelector = document.getElementById('header-site-selector');
 
   const isAuth = !!(state.auth && state.auth.isAuthenticated);
+  const role = state.auth ? state.auth.role : null;
 
   if (isAuth) {
     if (loginBtn) loginBtn.style.display = 'none';
-    if (userBadge) userBadge.style.display = 'inline-flex';
+    if (userBadge) {
+      userBadge.style.display = 'inline-flex';
+      const roleLabel = document.getElementById('header-user-role-label');
+      if (roleLabel) {
+        const dict = i18n[state.lang] || i18n.en;
+        roleLabel.innerHTML = role === 'supervisor' ? dict.supervisorBadge : dict.directorBadge;
+      }
+      const changeCredBtn = document.getElementById('header-change-cred-btn');
+      if (changeCredBtn) {
+        changeCredBtn.style.display = (role === 'director') ? 'inline-flex' : 'none';
+      }
+    }
     if (navTabs) navTabs.style.display = 'flex';
     if (opsActions) opsActions.style.display = 'inline-flex';
     if (siteSelector) siteSelector.style.display = 'flex';
+
+    // Apply tab permissions based on role
+    document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+      const tab = btn.dataset.tab;
+      if (role === 'supervisor') {
+        if (['flat-booking', 'supplier-khata', 'boq', 'workforce-payroll'].includes(tab)) {
+          btn.style.display = 'none';
+        } else {
+          btn.style.display = 'inline-flex';
+        }
+      } else {
+        btn.style.display = 'inline-flex';
+      }
+    });
   } else {
     if (loginBtn) loginBtn.style.display = 'inline-flex';
     if (userBadge) userBadge.style.display = 'none';
@@ -5578,6 +5729,7 @@ function updateAuthHeaderUi() {
     if (opsActions) opsActions.style.display = 'none';
     if (siteSelector) siteSelector.style.display = 'none';
   }
+  applyTranslations();
 }
 
 function openDirectorLoginModal() {
@@ -5589,10 +5741,68 @@ function openDirectorLoginModal() {
   }, 200);
 }
 
+function selectLoginRole(role) {
+  const userInput = document.getElementById('login-username');
+  const passInput = document.getElementById('login-password');
+  if (role === 'director') {
+    if (userInput) userInput.value = 'amitus';
+    if (passInput) passInput.value = '77877';
+    showToast('Auto-filled Director PIN (77877)', 'info');
+  } else if (role === 'supervisor') {
+    if (userInput) userInput.value = 'supervisor';
+    if (passInput) passInput.value = '1234';
+    showToast('Auto-filled Site Supervisor PIN (1234)', 'info');
+  }
+  if (passInput) passInput.focus();
+}
+
 function toggleLoginPasswordVisibility() {
   const passInput = document.getElementById('login-password');
   if (!passInput) return;
   passInput.type = passInput.type === 'password' ? 'text' : 'password';
+}
+
+function triggerGoogleSignInPrompt() {
+  const clientId = state.settings?.auth?.googleClientId;
+  const configuredEmail = state.settings?.auth?.googleEmail || 'amitusinfra2014@gmail.com';
+
+  const wantsDemo = confirm(`Google Sign-In Authentication:\n\nTo configure Google Identity, enter your Google Cloud OAuth Client ID in Director Settings (🔑 Change PIN / Pass).\n\nAuthorized Director Email: ${configuredEmail}\n\nWould you like to sign in as Director using verified Google account (${configuredEmail}) right now?`);
+  if (wantsDemo) {
+    testGoogleLogin(configuredEmail);
+  }
+}
+
+async function testGoogleLogin(email) {
+  try {
+    const res = await fetch('/api/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Google login failed');
+
+    state.auth.isAuthenticated = true;
+    state.auth.role = data.role || 'director';
+    state.auth.token = data.token;
+    state.auth.user = data.user || 'Santanu Bhaumik (Director)';
+    localStorage.setItem('amitus_auth_token', data.token);
+    localStorage.setItem('amitus_auth_user', state.auth.user);
+    localStorage.setItem('amitus_auth_role', state.auth.role);
+
+    closeModal('modal-director-login');
+    updateAuthHeaderUi();
+    showToast(`Signed in with Google as ${state.auth.user}!`, 'success');
+    await loadData();
+
+    if (state.pendingTargetTab) {
+      const target = state.pendingTargetTab;
+      state.pendingTargetTab = null;
+      switchTab(target);
+    }
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
 }
 
 async function submitDirectorLogin(e) {
@@ -5615,19 +5825,25 @@ async function submitDirectorLogin(e) {
 
     state.auth.isAuthenticated = true;
     state.auth.token = data.token;
-    state.auth.user = data.user || 'Santanu Bhaumik';
+    state.auth.role = data.role || 'director';
+    state.auth.user = data.user || (data.role === 'supervisor' ? 'Site Supervisor' : 'Santanu Bhaumik');
     state.auth.mode = data.mode || 'hybrid';
 
     if (remember) {
       localStorage.setItem('amitus_auth_token', data.token);
       localStorage.setItem('amitus_auth_user', state.auth.user);
+      localStorage.setItem('amitus_auth_role', state.auth.role);
     } else {
       sessionStorage.setItem('amitus_auth_token', data.token);
+      sessionStorage.setItem('amitus_auth_role', state.auth.role);
     }
 
     closeModal('modal-director-login');
     updateAuthHeaderUi();
-    showToast(`Welcome, Director ${state.auth.user}! Portal unlocked.`, 'success');
+    const welcomeMsg = state.auth.role === 'supervisor'
+      ? `Welcome, Site Supervisor! Field portal unlocked.`
+      : `Welcome, Director ${state.auth.user}! Enterprise portal unlocked.`;
+    showToast(welcomeMsg, 'success');
 
     // Reload full data with token
     await loadData();
@@ -5656,13 +5872,16 @@ async function directorLogout() {
   state.auth.isAuthenticated = false;
   state.auth.token = null;
   state.auth.user = null;
+  state.auth.role = null;
   localStorage.removeItem('amitus_auth_token');
   localStorage.removeItem('amitus_auth_user');
+  localStorage.removeItem('amitus_auth_role');
   sessionStorage.removeItem('amitus_auth_token');
+  sessionStorage.removeItem('amitus_auth_role');
 
   updateAuthHeaderUi();
   switchTab('home');
-  showToast('Logged out. Director portal locked.', 'info');
+  showToast('Logged out. Portal locked.', 'info');
   loadData();
 }
 
@@ -5671,6 +5890,9 @@ async function submitChangeCredentials(e) {
   const username = document.getElementById('cred-username')?.value.trim();
   const password = document.getElementById('cred-password')?.value.trim();
   const pin = document.getElementById('cred-pin')?.value.trim();
+  const supervisorPin = document.getElementById('cred-supervisor-pin')?.value.trim();
+  const googleEmail = document.getElementById('cred-google-email')?.value.trim();
+  const googleClientId = document.getElementById('cred-google-client-id')?.value.trim();
   const mode = document.getElementById('cred-mode')?.value;
 
   try {
@@ -5680,14 +5902,14 @@ async function submitChangeCredentials(e) {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + (state.auth?.token || '')
       },
-      body: JSON.stringify({ username, password, pin, mode })
+      body: JSON.stringify({ username, password, pin, supervisorPin, googleEmail, googleClientId, mode })
     });
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed to update credentials');
 
     closeModal('modal-change-credentials');
-    showToast(data.message || 'Credentials updated successfully!', 'success');
+    showToast(data.message || 'Credentials and PINs updated successfully!', 'success');
   } catch (err) {
     showToast(err.message, 'error');
   }

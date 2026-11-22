@@ -42,17 +42,17 @@
 
       <!-- Header Action Buttons -->
       <div class="header-actions">
-        <!-- Director Authentication Section in Header -->
+        <!-- Authentication Section in Header -->
         <div id="header-auth-section" style="display:inline-flex;align-items:center;gap:0.35rem;">
-          <button class="btn btn-sm btn-accent" id="header-login-btn" onclick="openDirectorLoginModal()" title="Director Portal Login">
-            🔐 Director Login
+          <button class="btn btn-sm btn-accent" id="header-login-btn" onclick="openDirectorLoginModal()" title="Director / Supervisor Portal Login">
+            🔐 Portal Login
           </button>
           <div id="header-user-badge" style="display:none;align-items:center;gap:0.35rem;">
-            <span class="badge badge-success" style="font-size:0.75rem;padding:0.35rem 0.65rem;font-weight:700;display:inline-flex;align-items:center;gap:0.3rem;" title="Director Logged In">
+            <span class="badge badge-success" id="header-user-role-label" style="font-size:0.75rem;padding:0.35rem 0.65rem;font-weight:700;display:inline-flex;align-items:center;gap:0.3rem;" title="Logged In">
               👤 Director
             </span>
-            <button class="btn btn-xs" onclick="openModal('modal-change-credentials')" title="Customize Credentials & PIN">
-              ⚙️
+            <button class="btn btn-xs btn-outline" id="header-change-cred-btn" onclick="openModal('modal-change-credentials')" title="Customize Credentials, PINs & Google Login">
+              🔑 Change PIN / Pass
             </button>
             <button class="btn btn-xs btn-outline" onclick="directorLogout()" title="Lock Management Portal">
               🚪 Logout
@@ -73,6 +73,9 @@
             ➕ Material <span class="kbd">N</span>
           </button>
         </div>
+        <button class="btn btn-sm btn-outline" id="lang-toggle-btn" onclick="toggleLanguage()" style="font-weight:700;" title="Switch Bengali / English">
+          🌐 বাংলা
+        </button>
         <button class="btn btn-sm btn-outline" id="pwa-install-btn" onclick="triggerPWAInstall()" style="display:none;background:rgba(245,158,11,0.15);border-color:var(--primary);color:var(--primary);font-weight:700;" title="Install Amitus Infra on Phone / Desktop">📲 Install App</button>
         <button class="btn btn-sm" id="theme-toggle-btn" title="Toggle Theme">
           🌙 Dark
@@ -1472,57 +1475,84 @@
 
 
   <!-- ==================================================== -->
-  <!-- MODAL: Director & Owner Authentication -->
+  <!-- MODAL: Portal Authentication (Director & Supervisor) -->
   <!-- ==================================================== -->
   <div class="modal-overlay" id="modal-director-login">
     <div class="modal-container" style="max-width:440px;">
       <div class="modal-header" style="border-bottom:none;padding-bottom:0;">
         <div class="modal-title">
-          <span>🔒 Director Portal Access</span>
+          <span>🔒 Portal Access — Amitus Infra</span>
         </div>
         <button class="modal-close-btn" onclick="closeModal('modal-director-login')">✕</button>
       </div>
       <form id="form-director-login" onsubmit="submitDirectorLogin(event)">
         <div class="modal-body" style="padding-top:0.5rem;text-align:center;">
-          <div style="width:68px;height:68px;border-radius:50%;background:#000;border:2px solid var(--primary);margin:0 auto 1rem auto;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 4px 16px rgba(245,158,11,0.25);">
+          <div style="width:64px;height:64px;border-radius:50%;background:#000;border:2px solid var(--primary);margin:0 auto 0.75rem auto;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 4px 16px rgba(245,158,11,0.25);">
             <img src="logo.jpg" alt="Amitus Infra" style="width:100%;height:100%;object-fit:contain;">
           </div>
           <h3 style="font-size:1.25rem;font-weight:900;color:var(--text-main);letter-spacing:0.02em;">
             AMITUS <span style="color:var(--primary);">INFRA</span>
           </h3>
-          <p style="font-size:0.775rem;color:var(--text-muted);margin-top:0.25rem;margin-bottom:1.5rem;">
-            Founder & Director Santanu Bhaumik • Executive Security
+          <p style="font-size:0.775rem;color:var(--text-muted);margin-top:0.25rem;margin-bottom:1rem;">
+            Founder & Director Santanu Bhaumik • Site Management
           </p>
 
+          <!-- 1-Tap Role Selector / Auto-fill Pills -->
+          <div style="display:flex;gap:0.4rem;margin-bottom:1rem;">
+            <button type="button" class="btn btn-xs btn-outline" onclick="selectLoginRole('director')" style="flex:1;padding:0.45rem 0.3rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:0.3rem;">
+              👑 Director PIN (77877)
+            </button>
+            <button type="button" class="btn btn-xs btn-outline" onclick="selectLoginRole('supervisor')" style="flex:1;padding:0.45rem 0.3rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:0.3rem;">
+              👷 Supervisor PIN (1234)
+            </button>
+          </div>
+
           <div style="text-align:left;">
-            <div class="form-group" style="margin-bottom:1rem;">
-              <label class="form-label">Username or Mobile <span class="req">*</span></label>
-              <input type="text" id="login-username" class="form-control" required placeholder="e.g. amitus or 098631 77877" value="amitus" style="font-weight:600;">
+            <div class="form-group" style="margin-bottom:0.85rem;">
+              <label class="form-label">Username / Role <span class="req">*</span></label>
+              <input type="text" id="login-username" class="form-control" required placeholder="e.g. amitus or supervisor" value="amitus" style="font-weight:600;">
             </div>
 
-            <div class="form-group" style="margin-bottom:1rem;">
+            <div class="form-group" style="margin-bottom:0.85rem;">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem;">
-                <label class="form-label" style="margin-bottom:0;">Password or 4/5-Digit PIN <span class="req">*</span></label>
+                <label class="form-label" style="margin-bottom:0;">PIN or Password <span class="req">*</span></label>
                 <span style="font-size:0.7rem;color:var(--primary);cursor:pointer;" onclick="toggleLoginPasswordVisibility()">👁️ Show</span>
               </div>
-              <input type="password" id="login-password" class="form-control" required placeholder="Enter password or PIN (e.g. 77877)" style="font-weight:700;letter-spacing:0.05em;font-size:1rem;">
+              <input type="password" id="login-password" class="form-control" required placeholder="Director: 77877 | Supervisor: 1234" style="font-weight:700;letter-spacing:0.05em;font-size:1rem;">
             </div>
 
-            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1.25rem;">
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;">
               <input type="checkbox" id="login-remember-me" checked style="width:16px;height:16px;cursor:pointer;">
-              <label for="login-remember-me" style="font-size:0.8rem;color:var(--text-main);cursor:pointer;font-weight:600;">
+              <label for="login-remember-me" style="font-size:0.775rem;color:var(--text-main);cursor:pointer;font-weight:600;">
                 Keep me signed in on this phone / browser
               </label>
             </div>
           </div>
 
           <button type="submit" class="btn btn-primary" style="width:100%;padding:0.75rem;font-size:0.95rem;font-weight:800;border-radius:var(--radius-sm);box-shadow:0 4px 14px rgba(245,158,11,0.35);">
-            🔓 Unlock Business Management Portal
+            🔓 Unlock Portal
           </button>
 
-          <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.65rem 0.85rem;margin-top:1.25rem;font-size:0.725rem;color:var(--text-muted);text-align:left;">
-            <strong style="color:var(--primary);">Initial Credentials:</strong> User: <code style="color:var(--text-main);">amitus</code> • PIN: <code style="color:var(--text-main);">77877</code> (or <code style="color:var(--text-main);">amitus2001</code>).<br>
-            <span style="color:var(--text-muted);">You can customize these anytime once logged in.</span>
+          <!-- Google Sign-In Option -->
+          <div style="margin:1rem 0 0.75rem 0;text-align:center;position:relative;">
+            <div style="border-top:1px solid var(--border);position:absolute;top:50%;left:0;right:0;"></div>
+            <span style="background:var(--bg-card);padding:0 10px;position:relative;font-size:0.7rem;color:var(--text-muted);font-weight:700;letter-spacing:0.04em;">OR SIGN IN WITH GOOGLE</span>
+          </div>
+
+          <button type="button" class="btn btn-sm btn-outline" onclick="triggerGoogleSignInPrompt()" style="width:100%;padding:0.6rem;display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;font-weight:700;">
+            <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/><path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15.2s.7 5.5 1.9 7.9l3.7-2.9c-.2-.7-.4-1.5-.4-2.3z"/><path fill="#34A853" d="M12 23.5c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.4-6.4-5.2L1.9 16.5C3.7 20.2 7.5 23.5 12 23.5z"/></svg>
+            <span>Sign in with Google</span>
+          </button>
+
+          <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.6rem 0.75rem;margin-top:1rem;font-size:0.725rem;color:var(--text-muted);text-align:left;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:0.25rem;">
+              <span>👑 <strong>Director PIN:</strong> <code style="color:var(--text-main);">77877</code></span>
+              <span style="color:var(--text-muted);">Full Enterprise Access</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;">
+              <span>👷 <strong>Supervisor PIN:</strong> <code style="color:var(--text-main);">1234</code></span>
+              <span style="color:var(--text-muted);">Field Hazira & Stock</span>
+            </div>
           </div>
         </div>
       </form>
@@ -1530,13 +1560,13 @@
   </div>
 
   <!-- ==================================================== -->
-  <!-- MODAL: Customize Director Credentials -->
+  <!-- MODAL: Customize Credentials, PINs & Google Login -->
   <!-- ==================================================== -->
   <div class="modal-overlay" id="modal-change-credentials">
-    <div class="modal-container">
+    <div class="modal-container" style="max-width:520px;">
       <div class="modal-header">
         <div class="modal-title">
-          <span>⚙️ Customize Director Login Credentials</span>
+          <span>⚙️ Change Passwords, PINs & Google Login</span>
         </div>
         <button class="modal-close-btn" onclick="closeModal('modal-change-credentials')">✕</button>
       </div>
@@ -1548,9 +1578,10 @@
               <option value="hybrid" selected>Hybrid Mode (Home Showcase public for clients, Operations locked)</option>
               <option value="full">Full Lockdown (Entire site locked, nobody sees anything without login)</option>
             </select>
-            <div style="font-size:0.725rem;color:var(--text-muted);margin-top:4px;">
-              In Hybrid mode, prospective flat buyers can view your homes and submit inquiries.
-            </div>
+          </div>
+
+          <div style="font-weight:800;color:var(--primary);font-size:0.85rem;margin:1.25rem 0 0.5rem 0;border-bottom:1px solid var(--border);padding-bottom:0.25rem;display:flex;align-items:center;gap:0.4rem;">
+            <span>👑 Managing Director Credentials (Full Access)</span>
           </div>
 
           <div class="form-group">
@@ -1560,18 +1591,47 @@
 
           <div class="form-grid">
             <div class="form-group">
-              <label class="form-label">New Password</label>
+              <label class="form-label">Director Password</label>
               <input type="text" id="cred-password" class="form-control" placeholder="e.g. amitus2001" value="amitus2001" required>
             </div>
             <div class="form-group">
-              <label class="form-label">Quick 4/5-Digit PIN</label>
+              <label class="form-label">Director Quick PIN</label>
               <input type="text" id="cred-pin" class="form-control" placeholder="e.g. 77877" value="77877" required>
+            </div>
+          </div>
+
+          <div style="font-weight:800;color:var(--primary);font-size:0.85rem;margin:1.25rem 0 0.5rem 0;border-bottom:1px solid var(--border);padding-bottom:0.25rem;display:flex;align-items:center;gap:0.4rem;">
+            <span>👷 Site Supervisor / Munshi Credentials (Field Access)</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Supervisor Quick PIN</label>
+            <input type="text" id="cred-supervisor-pin" class="form-control" placeholder="e.g. 1234" value="1234" required>
+            <div style="font-size:0.725rem;color:var(--text-muted);margin-top:4px;">
+              Give this PIN to site mistris/engineers. They can mark attendance and record materials. Flat sales and supplier debt ledgers stay hidden from them.
+            </div>
+          </div>
+
+          <div style="font-weight:800;color:var(--primary);font-size:0.85rem;margin:1.25rem 0 0.5rem 0;border-bottom:1px solid var(--border);padding-bottom:0.25rem;display:flex;align-items:center;gap:0.4rem;">
+            <span>🌐 Google Sign-In Setup (OAuth 2.0)</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Authorized Director Google Email</label>
+            <input type="email" id="cred-google-email" class="form-control" placeholder="e.g. amitusinfra2014@gmail.com" value="amitusinfra2014@gmail.com">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Google OAuth Client ID (Optional)</label>
+            <input type="text" id="cred-google-client-id" class="form-control" placeholder="e.g. xxxxx.apps.googleusercontent.com">
+            <div style="font-size:0.725rem;color:var(--text-muted);margin-top:4px;">
+              Created in Google Cloud Console → Credentials → OAuth 2.0 with Authorized Origin: <code style="color:var(--primary);">https://amitus-infra.onrender.com</code>.
             </div>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-sm" onclick="closeModal('modal-change-credentials')">Cancel</button>
-          <button type="submit" class="btn btn-primary btn-sm">💾 Update Credentials</button>
+          <button type="submit" class="btn btn-primary btn-sm">💾 Update All Credentials & PINs</button>
         </div>
       </form>
     </div>
