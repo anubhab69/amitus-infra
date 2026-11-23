@@ -21,13 +21,72 @@ let dbCache = null;
 let presetsCache = null;
 
 const activeSessions = new Map();
+const loginAttempts = new Map();
+
+// OWASP Recommended Security Headers
+const SECURITY_HEADERS = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'SAMEORIGIN',
+  'X-XSS-Protection': '1; mode=block',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains'
+};
+
+function getClientIp(req) {
+  const fwd = req.headers['x-forwarded-for'];
+  if (fwd) return fwd.split(',')[0].trim();
+  return req.socket?.remoteAddress || 'unknown';
+}
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const record = loginAttempts.get(ip);
+  if (!record) return { allowed: true };
+
+  if (record.blockedUntil && now < record.blockedUntil) {
+    const remainingSeconds = Math.ceil((record.blockedUntil - now) / 1000);
+    return {
+      allowed: false,
+      message: `Too many failed attempts. Login locked for ${remainingSeconds}s.`
+    };
+  }
+
+  if (now - record.lastAttempt > 15 * 60 * 1000) {
+    loginAttempts.delete(ip);
+    return { allowed: true };
+  }
+
+  return { allowed: true };
+}
+
+function recordFailedLogin(ip) {
+  const now = Date.now();
+  const record = loginAttempts.get(ip) || { attempts: 0, lastAttempt: now };
+  record.attempts += 1;
+  record.lastAttempt = now;
+
+  if (record.attempts >= 5) {
+    record.blockedUntil = now + 15 * 60 * 1000; // 15 min lock
+  }
+  loginAttempts.set(ip, record);
+}
+
+function resetFailedLogins(ip) {
+  loginAttempts.delete(ip);
+}
 
 function getAuthenticatedUser(req) {
   const authHeader = req.headers['authorization'] || '';
   if (authHeader.startsWith('Bearer ')) {
     const token = authHeader.slice(7).trim();
     if (activeSessions.has(token)) {
-      return activeSessions.get(token);
+      const session = activeSessions.get(token);
+      // 7-day session lifetime
+      if (Date.now() - session.loginTime > 7 * 24 * 60 * 60 * 1000) {
+        activeSessions.delete(token);
+        return null;
+      }
+      return session;
     }
   }
   return null;
@@ -409,7 +468,8 @@ function sendJson(res, statusCode, data) {
     'Content-Type': 'application/json; charset=utf-8',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    ...SECURITY_HEADERS
   });
   res.end(JSON.stringify(data));
 }
@@ -476,8 +536,26 @@ const server = http.createServer(async (req, res) => {
   try {
     if (pathname.startsWith('/api/')) {
 
+      // Universal Mutation Guard: Any POST, PUT, DELETE (except public login/contact) strictly requires a valid session
+      const publicMutationPaths = ['/api/auth/login', '/api/auth/google', '/api/auth/verify', '/api/contact'];
+      if (['POST', 'PUT', 'DELETE'].includes(method) && !publicMutationPaths.includes(pathname)) {
+        const session = getAuthenticatedUser(req);
+        if (!session) {
+          return sendJson(res, 401, { success: false, error: 'Authentication required to modify records' });
+        }
+      }
+
       // 0. Authentication API
       if (pathname === '/api/auth/login' && method === 'POST') {
+        const clientIp = getClientIp(req);
+        const rateCheck = checkRateLimit(clientIp);
+        if (!rateCheck.allowed) {
+          return sendJson(res, 429, {
+            success: false,
+            error: rateCheck.message
+          });
+        }
+
         loadDatabase();
         const body = await parseJsonBody(req);
         const authConfig = dbCache.settings.auth || {
@@ -516,6 +594,7 @@ const server = http.createServer(async (req, res) => {
                                   p === '77877';
 
         if (reqRole !== 'supervisor' && validDirectorUser && validDirectorPass) {
+          resetFailedLogins(clientIp);
           const token = crypto.randomBytes(32).toString('hex');
           const session = {
             token,
@@ -539,6 +618,7 @@ const server = http.createServer(async (req, res) => {
         const validSupervisorPin = p === supervisorPin || p === '1234';
 
         if (validSupervisorUser && validSupervisorPin) {
+          resetFailedLogins(clientIp);
           const token = crypto.randomBytes(32).toString('hex');
           const session = {
             token,
@@ -557,6 +637,7 @@ const server = http.createServer(async (req, res) => {
           });
         }
 
+        recordFailedLogin(clientIp);
         return sendJson(res, 401, {
           success: false,
           error: 'Invalid credentials. Enter Director PIN (77877) or Supervisor PIN (1234)'
@@ -593,7 +674,7 @@ const server = http.createServer(async (req, res) => {
           'anubhabbhaumik@gmail.com'
         ].filter(Boolean);
 
-        const isAuthorized = !authConfig.googleEmail || allowedEmails.includes(userEmail);
+        const isAuthorized = userEmail && allowedEmails.includes(userEmail);
 
         if (userEmail && isAuthorized) {
           const token = crypto.randomBytes(32).toString('hex');
@@ -1964,7 +2045,7 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(500);
         return res.end('Server Error loading file');
       }
-      res.writeHead(200, { 'Content-Type': contentType });
+      res.writeHead(200, { 'Content-Type': contentType, ...SECURITY_HEADERS });
       res.end(content);
     });
 
